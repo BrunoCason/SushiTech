@@ -4,6 +4,9 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import PageTitle from '../PageTitle';
 import { fetchUserProfile, updateUserProfile } from '../../Services/userService';
 import ModalConfirmation from '../ModalConfirmation';
+import { FaUserLarge } from "react-icons/fa6";
+import { MdEmail } from "react-icons/md";
+import { FaPhoneAlt } from "react-icons/fa";
 
 interface ProfileSettingsFormProps {
   user: User; // Recebe o usuário como prop
@@ -86,7 +89,7 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
         <h2 className="text-xl font-bold">Perfil</h2>
       </div>
       <form onSubmit={handleUpdate}>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Nome</label>
           <input
             type="text"
@@ -94,12 +97,14 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
             onChange={(e) => setName(e.target.value)}
             className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
           />
+        <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3"/>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Email</label>
-          <p className="text-gray-900 border-black border-b pb-1">{user.email}</p>
+          <p className="text-gray-900 border-black border-b py-2">{user.email}</p>
+          <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4"/>
       </div>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Telefone</label>
           <input
             type="tel"
@@ -107,6 +112,7 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
             onChange={(e) => setPhone(e.target.value)}
             className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
           />
+          <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3"/>
         </div>
         <div className="relative mb-4">
           <label className="block text-gray-700">Senha Atual</label>
@@ -120,7 +126,7 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
           <button
             type="button"
             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-            className="absolute inset-y-0 right-0 pr-3 mt-6"
+            className="absolute inset-y-0 right-0 pr-2 mt-6"
           >
             {showCurrentPassword ? (
               <FaEyeSlash className="h-4 w-4 text-black" />
@@ -144,7 +150,7 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
           <button
             type="button"
             onClick={() => setShowNewPassword(!showNewPassword)}
-            className="absolute inset-y-0 right-0 pr-3 mt-6"
+            className="absolute inset-y-0 right-0 pr-2 mt-6"
           >
             {showNewPassword ? (
               <FaEyeSlash className="h-4 w-4 text-black" />

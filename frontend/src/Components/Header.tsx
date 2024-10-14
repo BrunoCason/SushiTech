@@ -125,11 +125,16 @@ const Header = ({ user }: HeaderProps) => {
                 Pedidos
               </Link>
             </li>
+            <li>
+              <Link to="/profile-settings" className="hover:text-gray-400 block">
+                Configurações
+              </Link>
+            </li>
             {user && (
               <li>
                 <button
                   onClick={handleLogout}
-                  className="block w-full hover:text-gray-400"
+                  className="block w-full hover:text-gray-400 mt-10"
                 >
                   Logout
                 </button>

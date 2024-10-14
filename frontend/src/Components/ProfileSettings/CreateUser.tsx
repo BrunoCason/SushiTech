@@ -5,6 +5,9 @@ import { auth } from '../../firebaseAuth';
 import { db } from '../../Services/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUserLarge } from "react-icons/fa6";
+import { MdEmail } from "react-icons/md";
+import { FaPhoneAlt } from "react-icons/fa";
 import { validateName, validatePhone, validateEmail, validatePassword, phoneMask } from '../../utils/validateUser';
 import ModalConfirmation from '../ModalConfirmation';
 
@@ -123,7 +126,7 @@ const CreateUser: React.FC = () => {
     <div className="font-inter font-normal text-base text-black w-80 md:w-96">
       <h2 className="text-center font-bold text-xl mb-7">Novo Usuário</h2>
       <form onSubmit={handleCreateUser}>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Nome</label>
           <input
             type="text"
@@ -132,9 +135,10 @@ const CreateUser: React.FC = () => {
             className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${nameError ? 'border-red-500' : 'border-black'}`}
             placeholder="Digite o nome"
           />
+          <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3"/>
           {nameError && <p className="text-red-500 mt-2">{nameError}</p>}
         </div>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Email</label>
           <input
             type="email"
@@ -143,9 +147,10 @@ const CreateUser: React.FC = () => {
             className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${emailError ? 'border-red-500' : 'border-black'}`}
             placeholder="Digite o e-mail"
           />
+          <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4"/>
           {emailError && <p className="text-red-500 mt-2">{emailError}</p>}
         </div>
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-gray-700">Telefone</label>
           <InputMask
             mask={phoneMask}
@@ -154,6 +159,7 @@ const CreateUser: React.FC = () => {
             className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${phoneError ? 'border-red-500' : 'border-black'}`}
             placeholder="Digite o telefone"
           />
+          <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3"/>
           {phoneError && <p className="text-red-500 mt-2">{phoneError}</p>}
         </div>
         <div className="mb-4 relative">
@@ -168,7 +174,7 @@ const CreateUser: React.FC = () => {
           <button
             type="button"
             onClick={() => setPasswordVisible(!passwordVisible)}
-            className="absolute mt-4 right-0 px-3 cursor-pointer"
+            className="absolute mt-4 right-0 px-2 cursor-pointer"
           >
             {passwordVisible ? <FaEyeSlash /> : <FaEye />}
           </button>
@@ -186,7 +192,7 @@ const CreateUser: React.FC = () => {
           <button
             type="button"
             onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-            className="absolute mt-4 right-0 px-3 cursor-pointer"
+            className="absolute mt-4 right-0 px-2 cursor-pointer"
           >
             {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
           </button>
