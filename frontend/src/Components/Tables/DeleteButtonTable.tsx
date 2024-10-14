@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { deleteDoc, doc, getFirestore } from 'firebase/firestore';
 import { DeleteButtonTableProps } from "../../Types";
+import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({ tableId, email, onTableDeleted }) => {
   const [loading, setLoading] = useState(false);
@@ -79,12 +80,12 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({ tableId, email, o
           </div>
         </div>
       )}
-      <button
-        onClick={() => setShowConfirm(true)}
-        className="text-red-500 hover:underline"
-      >
-        Deletar
-      </button>
+      <RiDeleteBin6Fill onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setShowConfirm(true);
+      }}
+        className="cursor-pointer w-5 h-5"/>
     </div>
   );
 };

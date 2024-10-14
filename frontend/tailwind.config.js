@@ -9,10 +9,14 @@ export default {
         EBEBEB: "#EBEBEB",
         D4D4D4: "#D4D4D4",
         FA958: "#0FA958",
-        ADABAC: "#ADABAC"
+        ADABAC: "#ADABAC",
+        FACEA8: "#FACEA8"
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
+      },
+      spacing: {
+        "510px": "31.8em",
       },
     },
   },

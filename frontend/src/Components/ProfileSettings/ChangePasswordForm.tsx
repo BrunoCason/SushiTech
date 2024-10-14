@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { ChangePasswordFormProps } from "../../Types";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose }) => {
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const handleChangePassword = async () => {
     if (!newPassword) {
@@ -25,8 +27,8 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose 
       });
 
       if (response.ok) {
-        alert('Senha alterada com sucesso.');
-        onClose(); // Fechar o overlay após sucesso
+        onClose();
+        
       } else {
         const errorMessage = await response.text();
         setError(errorMessage);
@@ -40,36 +42,45 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose 
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg relative max-w-md w-full">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-        >
-          &times;
-        </button>
-        <h3 className="text-lg font-semibold mb-2">Alterar Senha para {email}</h3>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="mb-4">
-          <label className="block text-gray-700">Nova Senha:</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Digite a nova senha"
-            required
-          />
+    <>
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white py-8 px-16 rounded-lg shadow-lg font-inter font-bold text-base">
+          <p className="font-normal mb-6">Alterar Senha de <span className='font-bold'>{email}</span></p>
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <div className="mb-8 relative">
+            <input
+              type={confirmPasswordVisible ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="border-b placeholder:text-D4D4D4 w-full font-normal focus:outline-none"
+              placeholder="Digite a nova senha"
+            />
+            <button
+              type="button"
+              onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+              className="absolute mt-1 right-0 px-2 cursor-pointer"
+            >
+              {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          <div className='flex justify-center'>
+            <button
+              onClick={onClose}
+              className="bg-ADABAC text-white py-2 px-6 rounded-md mr-9"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleChangePassword}
+              className="bg-CC3333 text-white py-2 px-4 rounded-md"
+            >
+              Confirmar
+            </button>
+          </div>
+          {loading && <p className="">Carregando...</p>}
         </div>
-        <button
-          onClick={handleChangePassword}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-        >
-          Alterar Senha
-        </button>
-        {loading && <p className="mt-4 text-blue-500">Alterando a senha...</p>}
       </div>
-    </div>
+    </>
   );
 };
 

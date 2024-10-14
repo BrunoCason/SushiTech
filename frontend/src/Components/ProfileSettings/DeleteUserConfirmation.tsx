@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { deleteDoc, doc, getFirestore } from 'firebase/firestore';
 import { DeleteUserConfirmationProps } from "../../Types";
+import ModalConfirmation from '../ModalConfirmation';
 
 const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, onClose, onUserDeleted }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
   const db = getFirestore();
 
   const handleDeleteUser = async () => {
@@ -30,7 +32,7 @@ const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, 
         const userDocRef = doc(db, 'users', uid);
         await deleteDoc(userDocRef);
 
-        alert('Usuário excluído com sucesso.');
+        setModalMessage('Usuário excluído com sucesso.');
         onUserDeleted(email);
         onClose();
       } else {
@@ -46,31 +48,31 @@ const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, 
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg relative max-w-md w-full">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-        >
-          &times;
-        </button>
-        <h3 className="text-lg font-semibold mb-2">Confirmação de Exclusão</h3>
-        <p>Tem certeza que deseja excluir o usuário <strong>{email}</strong>?</p>
+      <div className="bg-white mx-10 pt-10 pb-7 px-4 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
+        <div className="flex justify-center mb-8">
+          <p className='flex justify-center items-center border-4 border-FACEA8 rounded-full h-20 w-20 text-FACEA8 font-normal text-5xl'>!</p>
+        </div>
+        <h3 className="text-2xl">Atenção</h3>
+        <p className="font-normal text-xl my-4">Tem certeza de que deseja excluir esse usuário?</p>
         {error && <p className="text-red-500">{error}</p>}
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-center">
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white py-1 px-4 rounded mr-2 hover:bg-gray-600"
+            className="bg-ADABAC text-white py-2 px-6 mr-16 rounded hover:bg-gray-600"
           >
             Cancelar
           </button>
           <button
             onClick={handleDeleteUser}
-            className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
+            className="bg-CC3333 text-white py-2 px-6 rounded hover:bg-red-600"
           >
-            {loading ? 'Excluindo...' : 'Excluir'}
+            {loading ? 'Excluindo...' : 'Confirmar'}
           </button>
         </div>
       </div>
+      {modalMessage && (
+        <ModalConfirmation message={modalMessage} />
+      )}
     </div>
   );
 };

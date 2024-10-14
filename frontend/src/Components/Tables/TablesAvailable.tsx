@@ -9,6 +9,8 @@ import { Table } from "../../Types";
 import DeleteButtonTable from "./DeleteButtonTable";
 import EditTableForm from "./EditTableForm";
 import { getUserRole } from "../../Services/roleService";
+import { IoMdAdd } from "react-icons/io";
+import { MdEdit } from "react-icons/md";
 
 const TablesAvailable: React.FC = () => {
   const [tableNumber, setTableNumber] = useState<string>("");
@@ -16,6 +18,9 @@ const TablesAvailable: React.FC = () => {
   const [editTableId, setEditTableId] = useState<string | null>(null);
   const [editTableNumber, setEditTableNumber] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const freeTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-black.png?alt=media&token=abe85ef6-5025-40cb-9b1e-596e60a1ec20";
+  const occupiedTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
 
   const handleAddTable = async () => {
     if (tableNumber) {
@@ -65,80 +70,87 @@ const TablesAvailable: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <PageTitle title="Mesas" />
-      <h2 className="text-2xl font-semibold mb-4">Adicionar Mesa</h2>
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Número da Mesa"
-          value={tableNumber}
-          onChange={(e) => setTableNumber(e.target.value)}
-          className="border border-gray-300 p-2 rounded-md mr-2"
-        />
-        <button
-          onClick={handleAddTable}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Adicionar Mesa
-        </button>
-      </div>
 
-      {editTableId && (
-        <EditTableForm
-          tableId={editTableId}
-          currentNumber={editTableNumber}
-          onClose={() => setEditTableId(null)}
-          onTableUpdated={fetchTables}
-        />
-      )}
+<div className="mt-20 bg-gray-100 font-inter">
+  <PageTitle title="Mesas" />
+  <div>
+    <button className="flex items-center text-sm p-2 font-bold text-CC3333 border border-CC3333 rounded-md">
+      <IoMdAdd className="h-4 w-4 mr-1" />
+      Adicionar Mesa
+    </button>
+    <h2 className="text-center font-semibold text-3xl">Mesas</h2>
+  </div>
+  <div className="mb-4">
+    <input
+      type="text"
+      placeholder="Número da Mesa"
+      value={tableNumber}
+      onChange={(e) => setTableNumber(e.target.value)}
+      className="border border-gray-300 p-2 rounded-md mr-2"
+    />
+    <button
+      onClick={handleAddTable}
+      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Adicionar Mesa
+    </button>
+  </div>
 
-      <h2 className="text-2xl font-semibold mb-4">Lista de Mesas</h2>
-      <ul>
-        {tables.map(table => (
-          <li key={table.id} className="mb-4 bg-white p-4 rounded-lg shadow-md">
-            <div className="flex justify-between items-center">
-              <span className="text-xl font-semibold">Mesa {table.number}</span>
-              <div>
-                <Link
-                  to={`/table/${table.number}`}
-                  className="text-blue-500 hover:underline mr-4"
-                >
-                  Visualizar
-                </Link>
+  {editTableId && (
+    <EditTableForm
+      tableId={editTableId}
+      currentNumber={editTableNumber}
+      onClose={() => setEditTableId(null)}
+      onTableUpdated={fetchTables}
+    />
+  )}
+  
+  <div className="flex justify-around">
+    <ul className="grid grid-cols-4 gap-24">
+      {tables
+        .sort((a, b) => Number(a.number) - Number(b.number)) // Converte para número antes de ordenar
+        .map(table => (
+          <li 
+            key={table.id} 
+            className={`rounded-lg w-48 h-48 ${
+              table.products && table.products.length > 0
+                ? "bg-CC3333 text-white"  // Cor quando há produtos
+                : "bg-DEDEDE" // Cor quando não há produtos
+            }`}
+          >
+          <div>
+            <Link to={`/table/${table.number}`}>
+            <div className="text-center p-4">
+              <span className="text-base font-bold">Mesa {table.number}</span>
+              <img
+                src={table.products && table.products.length > 0 ? occupiedTableImage : freeTableImage}
+                alt={`Mesa ${table.number} - ${table.products && table.products.length > 0 ? 'Ocupada' : 'Livre'}`}
+                className="w-24 h-24 mx-auto mt-2"
+              />
                 {isAdmin && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setEditTableId(table.id);
-                        setEditTableNumber(table.number);
-                      }}
-                      className="text-yellow-500 hover:underline mr-4"
-                    >
-                      Editar
-                    </button>
+                  <div className="flex justify-end">
+                    <MdEdit onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditTableId(table.id);
+                      setEditTableNumber(table.number);
+                    }} className="cursor-pointer w-5 h-5 mr-2" />
                     <DeleteButtonTable
                       tableId={table.id}
                       email={`table${table.number}@restaurant.com`}
                       onTableDeleted={fetchTables}
                     />
-                  </>
+                  </div>
                 )}
               </div>
+              </Link>
             </div>
-            <button
-              className={`mt-4 px-4 py-2 rounded-md text-white ${
-                table.products && table.products.length > 0
-                  ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
-                  : "bg-green-500 hover:bg-green-600 focus:ring-green-500"
-              } focus:outline-none focus:ring-2`}
-            >
-              {table.products && table.products.length > 0 ? "Produtos Adicionados" : "Sem Produtos"}
-            </button>
           </li>
         ))}
-      </ul>
-    </div>
+    </ul>
+  </div>
+</div>
+
   );
 };
 
