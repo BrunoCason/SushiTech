@@ -72,15 +72,15 @@ const TablesAvailable = () => {
   return (
     <div className="mt-20 container mx-auto font-inter">
       <PageTitle title="Mesas" />
-      <div>
+      <div className="flex items-center flex-col sm:flex-row sm:justify-between">
         <button
-          className="flex items-center text-sm p-2 font-bold text-CC3333 border border-CC3333 rounded-md ml-120px md:ml-11 xl:ml-44 2xl:ml-60"
+          className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md sm:ml-120px md:ml-11 xl:ml-44 2xl:ml-60"
           onClick={() => setIsModalOpen(true)}
         >
           <IoMdAdd className="h-4 w-4 mr-1" />
           Adicionar Mesa
         </button>
-        <h2 className="text-center font-semibold text-3xl -mt-9">Mesas</h2>
+        <h2 className="text-center font-semibold text-3xl sm:flex-1 sm:mr-64 md:ml-10 lg:mr-60 xl:-ml-24 2xl:-ml-40">Mesas</h2>
       </div>
 
       {/* Modal de adicionar mesa */}
