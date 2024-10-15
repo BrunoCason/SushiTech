@@ -17,6 +17,7 @@ export interface DeleteProductButtonProps {
 export interface EditProductFormProps {
   productId: string;
   productName: string;
+  productDescription: string;
   productPrice: number;
   productQuantity: number;
   productTags: string[];

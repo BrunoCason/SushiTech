@@ -6,8 +6,9 @@ import { EditProductFormProps } from "../../Types";
 
 const tagsOptions = ["Temaki", "Frito", "Bebida", "Sashimi", "Nigiri", "Sushi", "Maki", "Donburi", "Uramaki", "Yakimeshi", "Katsu"];
 
-const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productName, productPrice, productQuantity, productTags, onUpdate, onCancel }) => {
+const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productName, productDescription, productPrice, productQuantity, productTags, onUpdate, onCancel }) => {
   const [editProductName, setEditProductName] = useState<string>(productName);
+  const [editProductDescription, setEditProductDescription] = useState<string>(productDescription);
   const [editProductPrice, setEditProductPrice] = useState<number>(productPrice);
   const [editProductQuantity, setEditProductQuantity] = useState<number>(productQuantity);
   const [editProductImage, setEditProductImage] = useState<File | null>(null);
@@ -15,7 +16,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productNam
   const [showTagsMenu, setShowTagsMenu] = useState(false);
 
   const handleEditProduct = async () => {
-    if (editProductName && editProductPrice > 0 && editProductQuantity > 0) {
+    if (editProductName && editProductDescription && editProductPrice > 0 && editProductQuantity > 0) {
       try {
         let newImageUrl = "";
 
@@ -37,6 +38,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productNam
 
         await updateDoc(productRef, {
           name: editProductName,
+          description: editProductDescription,
           price: editProductPrice,
           quantity: editProductQuantity,
           image: newImageUrl || oldImageUrl,
@@ -59,7 +61,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productNam
   };
 
   return (
-    <div className="mt-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white">
       <h2 className="text-2xl font-semibold mb-4">Editar Produto</h2>
       <div className="mb-4">
         <input
@@ -67,6 +70,13 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productNam
           placeholder="Nome"
           value={editProductName}
           onChange={(e) => setEditProductName(e.target.value)}
+          className="border border-gray-300 p-2 rounded-md mr-2"
+        />
+        <input
+          type="text"
+          placeholder="Descrição"
+          value={editProductDescription}
+          onChange={(e) => setEditProductDescription(e.target.value)}
           className="border border-gray-300 p-2 rounded-md mr-2"
         />
         <input
@@ -121,6 +131,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ productId, productNam
         >
           Cancelar
         </button>
+      </div>
       </div>
     </div>
   );

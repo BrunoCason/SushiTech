@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../Services/firebaseConfig";
-import InProductionProducts from "./InProductionProducts";
 import PageTitle from "../PageTitle";
 import { Table, Product } from "../../Types";
 
 const PendingProducts: React.FC = () => {
   const [pendingProducts, setPendingProducts] = useState<{ table: Table; product: Product }[]>([]);
-  const [showInProductionOverlay, setShowInProductionOverlay] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchPendingProducts = async () => {
@@ -70,28 +68,18 @@ const PendingProducts: React.FC = () => {
     }
   };
 
-  const handleViewInProduction = () => {
-    setShowInProductionOverlay(true);
-  };
-
-  const handleCloseInProductionOverlay = () => {
-    setShowInProductionOverlay(false);
-  };
-
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="font-inter">
       <PageTitle title="Pedidos" />
-      <h2 className="text-2xl font-semibold mb-4">Produtos Pendentes</h2>
       {pendingProducts.length === 0 ? (
         <p>Sem produtos pendentes encontrados.</p>
       ) : (
-        <ul className="space-y-4 mb-6">
+        <ul className="space-y-4">
           {pendingProducts.map((item, index) => (
             <li key={index} className="bg-white p-4 rounded-lg shadow-md">
-              <h3 className="text-xl font-semibold mb-2">Mesa {item.table.number}</h3>
-              <p className="text-lg">Produto: {item.product.name}</p>
-              <p className="text-lg">Preço: ${item.product.price}</p>
-              <p className="text-lg">Quantidade: {item.product.quantity}</p>
+              <p className="font-bold text-lg">Mesa {item.table.number} - <span className="text-E6E6E">{item.product.name} {item.product.quantity} uni</span></p>
+              <p className="text-E6E6E text-sm font-medium">Quantidade: {item.product.quantity}</p>
+              <p className="text-E6E6E text-sm font-medium">Pedido #{item.product.price}</p>
               {item.product.image && (
                 <img 
                   src={item.product.image} 
@@ -108,17 +96,6 @@ const PendingProducts: React.FC = () => {
             </li>
           ))}
         </ul>
-      )}
-      <button 
-        onClick={handleViewInProduction} 
-        className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-      >
-        Pedidos em Produção
-      </button>
-
-      {/* Overlay for InProductionProducts */}
-      {showInProductionOverlay && (
-        <InProductionProducts onClose={handleCloseInProductionOverlay} />
       )}
     </div>
   );

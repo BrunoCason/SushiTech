@@ -3,6 +3,7 @@ import { deleteDoc, doc } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "../../Services/firebaseConfig";
 import { DeleteProductButtonProps } from "../../Types";
+import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, productImageUrl, onProductDeleted }) => {
   const handleDeleteProduct = async () => {
@@ -27,9 +28,9 @@ const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, pr
   return (
     <button
       onClick={handleDeleteProduct}
-      className="text-red-500 hover:underline"
+      className="text-CC3333"
     >
-      Deletar
+      <RiDeleteBin6Fill />
     </button>
   );
 };
