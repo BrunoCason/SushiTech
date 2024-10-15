@@ -31,34 +31,30 @@ const EditTableForm: React.FC<EditTableFormProps> = ({ tableId, currentNumber, o
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg relative max-w-md w-full">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-        >
-          &times;
-        </button>
-        <h3 className="text-lg font-semibold mb-2">Editar Mesa</h3>
-        <input
-          type="text"
-          placeholder="Número da Mesa"
-          value={newNumber}
-          onChange={(e) => setNewNumber(e.target.value)}
-          className="border border-gray-300 p-2 rounded-md w-full mb-4"
-        />
-        {error && <p className="text-red-500">{error}</p>}
-        <div className="mt-4 flex justify-end">
+      <div className="bg-white py-9 rounded-lg shadow-lg relative max-w-md w-full font-inter text-base mx-5">
+        <div className="flex justify-center items-center mb-8">
+          <p className="font-medium ml-5 sm:ml-0 mr-5">Insira o novo número da mesa</p>
+          <input
+            type="number"
+            placeholder="Nº"
+            value={newNumber}
+            onChange={(e) => setNewNumber(e.target.value)}
+            className="border border-ADABAC w-28 h-14 rounded-md focus:outline-none text-center font-medium mr-5 sm:m5-0"
+          />
+          {error && <p className="text-red-500">{error}</p>}
+        </div>
+        <div className="flex justify-center items-center">
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white py-1 px-4 rounded mr-2 hover:bg-gray-600"
+            className="font-bold text-white rounded w-24 h-9 bg-ADABAC mr-9"
           >
             Cancelar
           </button>
           <button
             onClick={handleUpdateTable}
-            className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+            className="font-bold text-white rounded w-24 h-9 bg-CC3333"
           >
-            {loading ? 'Atualizando...' : 'Atualizar'}
+            {loading ? 'Confirmar' : 'Confirmar'}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -11,18 +11,19 @@ import EditTableForm from "./EditTableForm";
 import { getUserRole } from "../../Services/roleService";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
+import AddTableModal from "./AddTableModal";
 
-const TablesAvailable: React.FC = () => {
-  const [tableNumber, setTableNumber] = useState<string>("");
+const TablesAvailable = () => {
   const [tables, setTables] = useState<Table[]>([]);
   const [editTableId, setEditTableId] = useState<string | null>(null);
   const [editTableNumber, setEditTableNumber] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o modal
 
   const freeTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-black.png?alt=media&token=abe85ef6-5025-40cb-9b1e-596e60a1ec20";
   const occupiedTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
 
-  const handleAddTable = async () => {
+  const handleAddTable = async (tableNumber: string) => {
     if (tableNumber) {
       try {
         const email = `table${tableNumber}@restaurant.com`;
@@ -37,7 +38,6 @@ const TablesAvailable: React.FC = () => {
           userId: userId,
         });
 
-        setTableNumber("");
         fetchTables();
       } catch (error) {
         console.error("Error adding table: ", error);
@@ -70,87 +70,81 @@ const TablesAvailable: React.FC = () => {
   }, []);
 
   return (
+    <div className="mt-20 container mx-auto font-inter">
+      <PageTitle title="Mesas" />
+      <div>
+        <button
+          className="flex items-center text-sm p-2 font-bold text-CC3333 border border-CC3333 rounded-md ml-120px md:ml-11 xl:ml-44 2xl:ml-60"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <IoMdAdd className="h-4 w-4 mr-1" />
+          Adicionar Mesa
+        </button>
+        <h2 className="text-center font-semibold text-3xl -mt-9">Mesas</h2>
+      </div>
 
-<div className="mt-20 bg-gray-100 font-inter">
-  <PageTitle title="Mesas" />
-  <div>
-    <button className="flex items-center text-sm p-2 font-bold text-CC3333 border border-CC3333 rounded-md">
-      <IoMdAdd className="h-4 w-4 mr-1" />
-      Adicionar Mesa
-    </button>
-    <h2 className="text-center font-semibold text-3xl">Mesas</h2>
-  </div>
-  <div className="mb-4">
-    <input
-      type="text"
-      placeholder="Número da Mesa"
-      value={tableNumber}
-      onChange={(e) => setTableNumber(e.target.value)}
-      className="border border-gray-300 p-2 rounded-md mr-2"
-    />
-    <button
-      onClick={handleAddTable}
-      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      Adicionar Mesa
-    </button>
-  </div>
+      {/* Modal de adicionar mesa */}
+      {isModalOpen && (
+        <AddTableModal 
+          onClose={() => setIsModalOpen(false)} 
+          onSubmit={handleAddTable} 
+        />
+      )}
 
-  {editTableId && (
-    <EditTableForm
-      tableId={editTableId}
-      currentNumber={editTableNumber}
-      onClose={() => setEditTableId(null)}
-      onTableUpdated={fetchTables}
-    />
-  )}
-  
-  <div className="flex justify-around">
-    <ul className="grid grid-cols-4 gap-24">
-      {tables
-        .sort((a, b) => Number(a.number) - Number(b.number)) // Converte para número antes de ordenar
-        .map(table => (
-          <li 
-            key={table.id} 
-            className={`rounded-lg w-48 h-48 ${
-              table.products && table.products.length > 0
-                ? "bg-CC3333 text-white"  // Cor quando há produtos
-                : "bg-DEDEDE" // Cor quando não há produtos
-            }`}
-          >
-          <div>
-            <Link to={`/table/${table.number}`}>
-            <div className="text-center p-4">
-              <span className="text-base font-bold">Mesa {table.number}</span>
-              <img
-                src={table.products && table.products.length > 0 ? occupiedTableImage : freeTableImage}
-                alt={`Mesa ${table.number} - ${table.products && table.products.length > 0 ? 'Ocupada' : 'Livre'}`}
-                className="w-24 h-24 mx-auto mt-2"
-              />
-                {isAdmin && (
-                  <div className="flex justify-end">
-                    <MdEdit onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditTableId(table.id);
-                      setEditTableNumber(table.number);
-                    }} className="cursor-pointer w-5 h-5 mr-2" />
-                    <DeleteButtonTable
-                      tableId={table.id}
-                      email={`table${table.number}@restaurant.com`}
-                      onTableDeleted={fetchTables}
-                    />
+      {/* Conteúdo existente */}
+      <div className="mb-7">
+        {editTableId && (
+          <EditTableForm
+            tableId={editTableId}
+            currentNumber={editTableNumber}
+            onClose={() => setEditTableId(null)}
+            onTableUpdated={fetchTables}
+          />
+        )}
+      </div>
+      
+      <div className="flex justify-around">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14 2xl:gap-24">
+          {tables
+            .sort((a, b) => Number(a.number) - Number(b.number)) 
+            .map(table => (
+              <li key={table.id} className={`rounded-lg w-48 h-48 ${
+                table.products && table.products.length > 0
+                  ? "bg-CC3333 text-white"
+                  : "bg-DEDEDE"
+              }`}>
+              <div>
+                  <div className="text-center p-4">
+                    <Link to={`/table/${table.number}`}>
+                      <span className="text-base font-bold">Mesa {table.number}</span>
+                      <img
+                        src={table.products && table.products.length > 0 ? occupiedTableImage : freeTableImage}
+                        alt={`Mesa ${table.number} - ${table.products && table.products.length > 0 ? 'Ocupada' : 'Livre'}`}
+                        className="w-24 h-24 mx-auto mt-2"
+                      />
+                    </Link>
+                    {isAdmin && (
+                      <div className="flex justify-end mt-4">
+                        <MdEdit onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditTableId(table.id);
+                          setEditTableNumber(table.number);
+                        }} className="cursor-pointer w-5 h-5 mr-2" />
+                        <DeleteButtonTable
+                          tableId={table.id}
+                          email={`table${table.number}@restaurant.com`}
+                          onTableDeleted={fetchTables}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
               </div>
-              </Link>
-            </div>
-          </li>
-        ))}
-    </ul>
-  </div>
-</div>
-
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 };
 

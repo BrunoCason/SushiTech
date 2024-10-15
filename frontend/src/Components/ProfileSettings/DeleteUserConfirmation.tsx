@@ -58,7 +58,7 @@ const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, 
         <div className="mt-4 flex justify-center">
           <button
             onClick={onClose}
-            className="bg-ADABAC text-white py-2 px-6 mr-16 rounded hover:bg-gray-600"
+            className="bg-ADABAC text-white py-2 px-6 mr-16 rounded"
           >
             Cancelar
           </button>
