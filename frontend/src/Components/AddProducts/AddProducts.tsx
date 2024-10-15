@@ -124,13 +124,15 @@ const AddProducts: React.FC = () => {
     <div className="container mx-auto mt-32 font-inter">
       <PageTitle title="Produtos" />
 
-      <button
-        className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
-        onClick={() => setIsModalOpen(true)}
-      >
-        <IoMdAdd className="h-4 w-4" />
-        Adicionar Produto
-      </button>
+      <div className="border-b border-black pb-3 mb-5">
+        <button
+          className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <IoMdAdd className="h-4 w-4" />
+          Adicionar Produto
+        </button>
+      </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -148,12 +150,12 @@ const AddProducts: React.FC = () => {
                 />
                 <label
                   htmlFor="fileInput"
-                  className="flex flex-col justify-center items-center w-72 h-96 bg-gray-300 rounded-md cursor-pointer"
+                  className="flex flex-col justify-center items-center w-64 h-96 bg-gray-300 rounded-md cursor-pointer"
                 >
                   <IoMdImage className="w-60 h-60 text-gray-600" />
                 </label>
               </div>
-              <div>
+              <div className="w-72">
                 <p className="font-medium text-xl mb-3">Adicionar Produto</p>
                 <p className="font-medium text-lg">Nome</p>
                 <input
@@ -179,7 +181,7 @@ const AddProducts: React.FC = () => {
                   onChange={(e) => setProductPrice(Number(e.target.value))}
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
-                <div className="flex mt-3">
+                <div className="flex justify-between mt-3">
                   <div>
                     <p className="font-medium text-lg mb-5">Peças/Unidades</p>
                     <input
@@ -192,7 +194,7 @@ const AddProducts: React.FC = () => {
                       className="border border-black focus:outline-none rounded-md text-center w-24 h-9"
                     />
                   </div>
-                  <div className="relative mb-4">
+                  <div className="mb-4">
                     <p className="font-medium text-lg mb-5">Categoria</p>
                     <button
                       onClick={() => setShowTagsMenu(!showTagsMenu)}
