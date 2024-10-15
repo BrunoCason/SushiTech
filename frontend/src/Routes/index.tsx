@@ -8,6 +8,7 @@ import PrivateRoute from "./PrivateRoute";
 import AuthRoute from "./AuthRoute";
 import MenuPerfil from "../Components/ProfileSettings/MenuPerfil";
 import MenuOrders from "../Components/Orders/MenuOrders";
+import MyOrders from "../Components/Tables/MyOrders";
 
 const AppRoutes = () => {
   return (
@@ -22,6 +23,7 @@ const AppRoutes = () => {
       />
       
       <Route path="/table/:id" element={<Table />} />
+      <Route path="/my-orders/:id" element={<MyOrders />} />
       
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>

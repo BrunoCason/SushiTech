@@ -13,7 +13,8 @@ export default {
         FACEA8: "#FACEA8",
         E6E6E: "#6E6E6E",
         A7A7A7: "#A7A7A7",
-        BCBCBC: "#BCBCBC"
+        BCBCBC: "#BCBCBC",
+        C99F45: "#C99F45"
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
