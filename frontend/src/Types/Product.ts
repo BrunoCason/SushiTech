@@ -2,8 +2,10 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  quantity: number;
   image?: string;
   status?: string;
+  orderNumber: string;
   instanceId?: string; // instanceId para distinguir produtos iguais
 }
 

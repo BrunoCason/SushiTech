@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PendingProducts from "./PendingProducts";
 import InProductionProducts from "./InProductionProducts";
+import ReadyOrders from "./ReadyOrders";
 
 const MenuOrders = () => {
   // Estado para controlar a seleção do menu
@@ -13,13 +14,9 @@ const MenuOrders = () => {
       case "pendingProducts":
         return <PendingProducts />;
       case "inProductionProducts":
-        return (
-          <InProductionProducts
-            onClose={function (): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-        );
+        return <InProductionProducts />
+      case "readyOrders":
+        return <ReadyOrders />
       default:
         return <PendingProducts />;
     }
@@ -28,7 +25,7 @@ const MenuOrders = () => {
   const menuItems = [
     { id: "pendingProducts", label: "Pedidos Realizados" },
     { id: "inProductionProducts", label: "Pedidos em Preparação" },
-    { id: "userListOverlay", label: "Pedidos Prontos" },
+    { id: "readyOrders", label: "Pedidos Prontos" },
   ];
 
   return (
