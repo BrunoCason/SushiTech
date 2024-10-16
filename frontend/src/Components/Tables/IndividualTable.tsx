@@ -14,13 +14,23 @@ import { db } from "../../Services/firebaseConfig";
 import PageTitle from "../PageTitle";
 import { IoBag } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import {
+  addToCart,
+  clearCart,
+  decrementQuantity,
+  incrementQuantity,
+} from "../../redux/slices/cartSlice";
+import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const IndividualTable: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // Inicializa o dispatch do Redux
+  const cartItems = useSelector((state: RootState) => state.cart.items); // Obtém os itens da sacola do Redux
   const [tableExists, setTableExists] = useState<boolean>(false);
   const [products, setProducts] = useState<DocumentData[]>([]);
-  const [tableProducts, setTableProducts] = useState<DocumentData[]>([]);
   const [tableDocId, setTableDocId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -42,7 +52,7 @@ const IndividualTable: React.FC = () => {
 
         const tableData = tableDoc.data();
         if (tableData && tableData.products) {
-          setTableProducts(tableData.products);
+          // Se necessário, pode sincronizar o Firestore com o Redux aqui.
         }
       } catch (error) {
         console.error("Error checking table existence: ", error);
@@ -68,117 +78,159 @@ const IndividualTable: React.FC = () => {
   }, [id, navigate]);
 
   const handleAddToCart = (product: DocumentData) => {
-    const instanceId = `${product.id}-${Date.now()}`;
-    const productWithStatus = { ...product, status: "pendente", instanceId };
-    const updatedTableProducts = [...tableProducts, productWithStatus];
-
-    setTableProducts(updatedTableProducts);
-    localStorage.setItem(`cart-${id}`, JSON.stringify(updatedTableProducts)); // Salva no localStorage
-    console.log("Product added to local cart successfully!");
-  };
-
-  const handleRemoveFromCart = (product: DocumentData) => {
-    const updatedTableProducts = tableProducts.filter(
-      (p) => p.instanceId !== product.instanceId
-    );
-
-    setTableProducts(updatedTableProducts);
-    localStorage.setItem(`cart-${id}`, JSON.stringify(updatedTableProducts)); // Salva no localStorage
-    console.log("Product removed from local cart successfully!");
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image || "",
+      })
+    ); // Usa o Redux para adicionar ao carrinho
+    console.log("Product added to cart successfully!");
   };
 
   const handlePlaceOrder = async () => {
-    if (!tableDocId || tableProducts.length === 0) return;
+    if (!tableDocId || cartItems.length === 0) return;
 
     try {
       const tableRef = doc(db, "tables", tableDocId);
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
 
-      const updatedProducts = [...currentProducts, ...tableProducts];
+      // Mapeia os itens do carrinho para incluir o status e a URL da imagem
+      const updatedProducts = [
+        ...currentProducts,
+        ...cartItems.map((item) => ({
+          ...item,
+          status: "pendente", // Adiciona o status "pendente"
+          image:
+            products.find((product) => product.id === item.id)?.image || "", // Adiciona a URL da imagem
+        })),
+      ];
 
-      await updateDoc(tableRef, { products: updatedProducts });
+      // Atualiza a tabela no Firestore com os produtos
+      await updateDoc(tableRef, {
+        products: updatedProducts,
+      });
 
       // Limpar a sacola após o pedido
-      setTableProducts([]); // Limpa o estado local
-      localStorage.removeItem(`cart-${id}`); // Remove os itens do localStorage
+      dispatch(clearCart()); // Limpa a sacola no Redux
       console.log("Pedido feito com sucesso!");
     } catch (error) {
       console.error("Erro ao fazer o pedido: ", error);
     }
   };
 
-  // Carregar produtos do localStorage quando o componente é montado
-  useEffect(() => {
-    const storedCart = localStorage.getItem(`cart-${id}`);
-    if (storedCart) {
-      setTableProducts(JSON.parse(storedCart));
-    }
-  }, [id]);
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
+  const handleClearCart = () => {
+    dispatch(clearCart()); // Limpa toda a sacola
+  };
+
+  // Calcula o total dos produtos no carrinho
+  const totalPrice = cartItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
 
   if (!tableExists) {
     return <div className="text-center text-xl mt-10">Loading...</div>;
   }
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-
   return (
     <div className="p-6 font-inter container mx-auto">
       <PageTitle title={`Mesa ${id}`} />
-      <button
-        onClick={toggleModal}
-        className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center px-3 py-1"
-      >
-        <IoBag className="mr-1" />
-        Sacola
-      </button>
-
-      <Link to={`/my-orders/${id}`}>
-        <button className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm flex items-center px-3 py-1">
-          <FaClipboardList />
-          Meus Pedidos
+      <div className="flex justify-end space-x-6">
+        <button
+          onClick={toggleModal}
+          className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-8"
+        >
+          <IoBag className="mr-3" />
+          Sacola
         </button>
-      </Link>
+
+        <Link to={`/my-orders/${id}`}>
+          <button className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm flex items-center justify-center w-32 h-8">
+            <FaClipboardList className="mr-2" />
+            Meus Pedidos
+          </button>
+        </Link>
+      </div>
 
       {isModalOpen && (
         <div
           onClick={toggleModal}
           className="fixed inset-0 flex justify-end bg-black bg-opacity-50 z-50"
         >
-          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-2xl font-semibold mb-4">Produtos no Carrinho</h2>
-            {tableProducts.length > 0 ? (
-              <ul className="space-y-4">
-                {tableProducts.map((product, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center bg-gray-100 p-4 rounded-lg"
-                  >
-                    <div>
-                      <h3 className="text-lg font-semibold">{product.name}</h3>
-                      <p>Quantidade: {product.quantity}</p>
-                      <p>Status: {product.status}</p>
-                    </div>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-16 h-16 object-cover rounded-md"
-                    />
-                    <button
-                      onClick={() => handleRemoveFromCart(product)}
-                      className="font-medium text-white bg-red-500 rounded-md text-sm px-3 py-1"
-                    >
-                      Remover
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">O carrinho está vazio.</p>
-            )}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white p-6 shadow-lg max-w-md w-full flex flex-col justify-between"
+          >
             <div>
+              <div className="flex items-center justify-between mb-9">
+                <h2 className="text-2xl font-semibold">Itens Adicionados</h2>
+                <RiDeleteBin6Fill
+                  onClick={handleClearCart}
+                  className="text-CC3333 h-5 w-5 cursor-pointer"
+                />
+              </div>
+              {cartItems.length > 0 ? (
+                <ul className="space-y-4">
+                  {cartItems.map((product, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between rounded-lg "
+                    >
+                      <div className="flex items-center">
+                        <div>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-20 h-16 object-cover rounded-md mr-5"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-base font-semibold">
+                            {product.name}
+                          </p>
+                          <p className="text-base font-medium">
+                            R$ {product.price}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-around items-center border border-E6E6E rounded-md w-20 h-9 font-bold text-E6E6E">
+                        <button
+                          onClick={() =>
+                            dispatch(decrementQuantity({ id: product.id }))
+                          }
+                        >
+                          -
+                        </button>
+                        <p>{product.quantity}</p>
+                        <button
+                          onClick={() =>
+                            dispatch(incrementQuantity({ id: product.id }))
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">O carrinho está vazio.</p>
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-base font-medium text-E6E6E">
+                Total{" "}
+                <span className="text-lg font-medium text-black ml-3">
+                  R$ {totalPrice.toFixed(2)}
+                </span>
+              </p>
               <button
                 onClick={handlePlaceOrder}
                 className="font-medium text-white bg-CC3333 rounded-md text-sm px-5 py-3"
