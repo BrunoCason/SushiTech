@@ -2,7 +2,6 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  quantity: number;
   image?: string;
   status?: string;
   instanceId?: string; // instanceId para distinguir produtos iguais
@@ -19,7 +18,6 @@ export interface EditProductFormProps {
   productName: string;
   productDescription: string;
   productPrice: number;
-  productQuantity: number;
   productTags: string[];
   onUpdate: () => void;
   onCancel: () => void;

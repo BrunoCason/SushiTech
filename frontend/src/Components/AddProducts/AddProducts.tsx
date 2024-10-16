@@ -27,7 +27,6 @@ const AddProducts: React.FC = () => {
   const [productName, setProductName] = useState<string>("");
   const [productPrice, setProductPrice] = useState<number>(0);
   const [productDescription, setProductDescription] = useState<string>("");
-  const [productQuantity, setProductQuantity] = useState<number>(0);
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
   const [products, setProducts] = useState<
@@ -36,7 +35,6 @@ const AddProducts: React.FC = () => {
       name: string;
       description: string;
       price: number;
-      quantity: number;
       image: string;
       tags: string[];
     }[]
@@ -45,7 +43,6 @@ const AddProducts: React.FC = () => {
   const [editProductName, setEditProductName] = useState<string>("");
   const [editProductDescription, setEditProductDescription] = useState<string>("");
   const [editProductPrice, setEditProductPrice] = useState<number>(0);
-  const [editProductQuantity, setEditProductQuantity] = useState<number>(0);
   const [editProductTags, setEditProductTags] = useState<string[]>([]);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
 
@@ -56,7 +53,6 @@ const AddProducts: React.FC = () => {
       productName &&
       productDescription &&
       productPrice > 0 &&
-      productQuantity > 0 &&
       productImage
     ) {
       try {
@@ -68,7 +64,6 @@ const AddProducts: React.FC = () => {
           name: productName,
           description: productDescription,
           price: productPrice,
-          quantity: productQuantity,
           image: imageUrl,
           tags: productTags,
         });
@@ -76,7 +71,6 @@ const AddProducts: React.FC = () => {
         setProductName("");
         setProductDescription("");
         setProductPrice(0);
-        setProductQuantity(0);
         setProductImage(null);
         setProductTags([]);
         fetchProducts();
@@ -86,7 +80,7 @@ const AddProducts: React.FC = () => {
       }
     } else {
       console.log(
-        "Please enter product name, price, quantity, and upload an image."
+        "Please enter product name, price and upload an image."
       );
     }
   };
@@ -101,7 +95,6 @@ const AddProducts: React.FC = () => {
       name: string;
       description: string;
       price: number;
-      quantity: number;
       image: string;
       tags: string[];
     }[];
@@ -182,18 +175,6 @@ const AddProducts: React.FC = () => {
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
                 <div className="flex justify-between mt-3">
-                  <div>
-                    <p className="font-medium text-lg mb-5">Peças/Unidades</p>
-                    <input
-                      type="number"
-                      placeholder="Quantidade"
-                      value={productQuantity}
-                      onChange={(e) =>
-                        setProductQuantity(Number(e.target.value))
-                      }
-                      className="border border-black focus:outline-none rounded-md text-center w-24 h-9"
-                    />
-                  </div>
                   <div className="mb-4">
                     <p className="font-medium text-lg mb-5">Categoria</p>
                     <button
@@ -251,7 +232,7 @@ const AddProducts: React.FC = () => {
           >
             <div className="w-56">
               <p className="font-bold text-lg mb-2">
-                {product.name} - {product.quantity} uni
+                {product.name}
               </p>
               <p className="font-medium text-sm text-E6E6E h-16 text-justify">{product.description}</p>
               <div className="flex justify-between">
@@ -263,7 +244,6 @@ const AddProducts: React.FC = () => {
                       setEditProductName(product.name);
                       setEditProductDescription(product.description);
                       setEditProductPrice(product.price);
-                      setEditProductQuantity(product.quantity);
                       setEditProductTags(product.tags);
                     }}
                   >
@@ -295,14 +275,12 @@ const AddProducts: React.FC = () => {
           productName={editProductName}
           productDescription={editProductDescription}
           productPrice={editProductPrice}
-          productQuantity={editProductQuantity}
           productTags={editProductTags}
           onUpdate={() => {
             setEditProductId(null);
             setEditProductName("");
             setEditProductDescription("")
             setEditProductPrice(0);
-            setEditProductQuantity(0);
             setEditProductTags([]);
             fetchProducts();
           }}

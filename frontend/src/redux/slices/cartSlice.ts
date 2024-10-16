@@ -22,13 +22,13 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (
       state: CartState,
-      action: PayloadAction<{ id: string; name: string; price: number; image: string }>
+      action: PayloadAction<{ id: string; name: string; price: number; image: string; quantity: number }>
     ) => {
       const existingItem = state.items.find(item => item.id === action.payload.id);
       if (existingItem) {
-        existingItem.quantity += 1; // Incrementa a quantidade se o item já estiver na sacola
+        existingItem.quantity += action.payload.quantity; // Incrementa a quantidade com base no valor passado
       } else {
-        state.items.push({ ...action.payload, quantity: 1 });
+        state.items.push({ ...action.payload, quantity: action.payload.quantity }); // Usa a quantidade especificada
       }
       localStorage.setItem('cartItems', JSON.stringify(state.items)); // Salva no localStorage
     },

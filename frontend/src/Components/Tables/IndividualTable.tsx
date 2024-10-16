@@ -1,38 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  doc,
-  updateDoc,
-  getDoc,
-  DocumentData,
-} from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, getDoc, DocumentData } from "firebase/firestore";
 import { db } from "../../Services/firebaseConfig";
 import PageTitle from "../PageTitle";
 import { IoBag } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import {
-  addToCart,
-  clearCart,
-  decrementQuantity,
-  incrementQuantity,
-} from "../../redux/slices/cartSlice";
+import { addToCart, clearCart, decrementQuantity, incrementQuantity } from "../../redux/slices/cartSlice";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 
-const IndividualTable: React.FC = () => {
+const IndividualTable = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // Inicializa o dispatch do Redux
-  const cartItems = useSelector((state: RootState) => state.cart.items); // Obtém os itens da sacola do Redux
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state: RootState) => state.cart.items);
   const [tableExists, setTableExists] = useState<boolean>(false);
   const [products, setProducts] = useState<DocumentData[]>([]);
   const [tableDocId, setTableDocId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     const checkTableExists = async () => {
@@ -49,11 +36,6 @@ const IndividualTable: React.FC = () => {
         const tableDoc = querySnapshot.docs[0];
         setTableDocId(tableDoc.id);
         setTableExists(true);
-
-        const tableData = tableDoc.data();
-        if (tableData && tableData.products) {
-          // Se necessário, pode sincronizar o Firestore com o Redux aqui.
-        }
       } catch (error) {
         console.error("Error checking table existence: ", error);
       }
@@ -77,16 +59,26 @@ const IndividualTable: React.FC = () => {
     fetchProducts();
   }, [id, navigate]);
 
+  // Função para gerar um número aleatório de pedido
+  const generateOrderNumber = () => {
+    return Math.floor(100000 + Math.random() * 900000); // Número aleatório de 6 dígitos
+  };
+
   const handleAddToCart = (product: DocumentData) => {
-    dispatch(
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image || "",
-      })
-    ); // Usa o Redux para adicionar ao carrinho
-    console.log("Product added to cart successfully!");
+    const quantity = quantities[product.id] || 1; // Usa a quantidade especificada pelo usuário, ou 1 se não estiver definida
+    if (quantity > 0) {
+      dispatch(
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image || "",
+          quantity, // Adiciona a quantidade ao carrinho
+        })
+      );
+      setQuantities((prev) => ({ ...prev, [product.id]: 1 })); // Reseta a quantidade após adicionar ao carrinho
+      console.log("Product added to cart successfully!");
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -97,43 +89,74 @@ const IndividualTable: React.FC = () => {
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
 
-      // Mapeia os itens do carrinho para incluir o status e a URL da imagem
-      const updatedProducts = [
-        ...currentProducts,
-        ...cartItems.map((item) => ({
-          ...item,
-          status: "pendente", // Adiciona o status "pendente"
-          image:
-            products.find((product) => product.id === item.id)?.image || "", // Adiciona a URL da imagem
-        })),
-      ];
+      const currentProductsMap = currentProducts.reduce((acc: any, product: any) => {
+        acc[product.id] = product;
+        return acc;
+      }, {});
 
-      // Atualiza a tabela no Firestore com os produtos
+      const orderNumber = generateOrderNumber(); // Gerar um número de pedido
+
+      const updatedProducts = cartItems.map((item) => {
+        const existingProduct = currentProductsMap[item.id];
+        if (existingProduct) {
+          return {
+            ...existingProduct,
+            quantity: existingProduct.quantity + item.quantity,
+            status: "pendente",
+            image: products.find((product) => product.id === item.id)?.image || "",
+            orderNumber, // Adiciona o número do pedido ao produto
+          };
+        } else {
+          return {
+            ...item,
+            status: "pendente",
+            image: products.find((product) => product.id === item.id)?.image || "",
+            orderNumber, // Adiciona o número do pedido ao novo produto
+          };
+        }
+      });
+
       await updateDoc(tableRef, {
         products: updatedProducts,
       });
 
-      // Limpar a sacola após o pedido
-      dispatch(clearCart()); // Limpa a sacola no Redux
+      dispatch(clearCart());
       console.log("Pedido feito com sucesso!");
     } catch (error) {
       console.error("Erro ao fazer o pedido: ", error);
     }
   };
+  
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
   const handleClearCart = () => {
-    dispatch(clearCart()); // Limpa toda a sacola
+    dispatch(clearCart());
   };
 
-  // Calcula o total dos produtos no carrinho
   const totalPrice = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+
+  const handleIncrement = (productId: string) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: (prev[productId] || 1) + 1, // Incrementa a quantidade
+    }));
+  };
+
+  const handleDecrement = (productId: string) => {
+    setQuantities((prev) => {
+      const currentQuantity = prev[productId] || 1;
+      return {
+        ...prev,
+        [productId]: Math.max(1, currentQuantity - 1), // Decrementa a quantidade, garantindo que não fique menor que 1
+      };
+    });
+  };
 
   if (!tableExists) {
     return <div className="text-center text-xl mt-10">Loading...</div>;
@@ -142,7 +165,7 @@ const IndividualTable: React.FC = () => {
   return (
     <div className="p-6 font-inter container mx-auto">
       <PageTitle title={`Mesa ${id}`} />
-      <div className="flex justify-end space-x-6">
+      <div className="flex justify-end space-x-6 border-b border-black pb-3 mb-3">
         <button
           onClick={toggleModal}
           className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-8"
@@ -196,7 +219,7 @@ const IndividualTable: React.FC = () => {
                             {product.name}
                           </p>
                           <p className="text-base font-medium">
-                            R$ {product.price}
+                            R$ {(product.price * product.quantity).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -221,7 +244,9 @@ const IndividualTable: React.FC = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-gray-500">O carrinho está vazio.</p>
+                <p className="text-E6E6E font-semibold text-lg">
+                  O carrinho está vazio.
+                </p>
               )}
             </div>
             <div className="flex justify-between items-center">
@@ -258,7 +283,28 @@ const IndividualTable: React.FC = () => {
                 </p>
                 <div className="flex justify-between">
                   <p className="font-bold text-sm">R$ {product.price}</p>
-                  <div className="">
+                  <div className="flex space-x-2">
+                    <div className="flex justify-around items-center border border-E6E6E rounded-md font-bold text-E6E6E text-xs px-1 py-1 w-14">
+                      <button onClick={() => handleDecrement(product.id)}>
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={quantities[product.id] || 1} // Mantém o valor atual ou define como 1 se não estiver definido
+                        onChange={(e) => {
+                          const value = Math.max(1, Number(e.target.value)); // Assegura que a quantidade seja pelo menos 1
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [product.id]: value,
+                          }));
+                        }}
+                        min="0"
+                        className="w-6 text-center focus:outline-none"
+                      />
+                      <button onClick={() => handleIncrement(product.id)}>
+                        +
+                      </button>
+                    </div>
                     <button
                       onClick={() => handleAddToCart(product)}
                       className="border border-C99F45 rounded-md text-C99F45 font-bold text-xs flex items-center px-1 py-1"

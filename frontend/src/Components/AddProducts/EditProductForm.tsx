@@ -29,7 +29,6 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   productName,
   productDescription,
   productPrice,
-  productQuantity,
   productTags,
   onUpdate,
   onCancel,
@@ -39,8 +38,6 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
     useState<string>(productDescription);
   const [editProductPrice, setEditProductPrice] =
     useState<number>(productPrice);
-  const [editProductQuantity, setEditProductQuantity] =
-    useState<number>(productQuantity);
   const [editProductImage, setEditProductImage] = useState<File | null>(null);
   const [editProductTags, setEditProductTags] = useState<string[]>(productTags);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
@@ -49,8 +46,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
     if (
       editProductName &&
       editProductDescription &&
-      editProductPrice > 0 &&
-      editProductQuantity > 0
+      editProductPrice > 0
     ) {
       try {
         let newImageUrl = "";
@@ -77,7 +73,6 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
           name: editProductName,
           description: editProductDescription,
           price: editProductPrice,
-          quantity: editProductQuantity,
           image: newImageUrl || oldImageUrl,
           tags: editProductTags,
         });
@@ -87,7 +82,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         console.error("Error updating product: ", error);
       }
     } else {
-      console.log("Please enter product name, price, and quantity.");
+      console.log("Please enter product name, price.");
     }
   };
 
@@ -147,18 +142,6 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
             />
             <div className="flex justify-between mt-3">
-              <div>
-                <p className="font-medium text-lg mb-5">Peças/Unidades</p>
-                <input
-                  type="number"
-                  placeholder="Quantidade"
-                  value={editProductQuantity}
-                  onChange={(e) =>
-                    setEditProductQuantity(Number(e.target.value))
-                  }
-                  className="border border-black focus:outline-none rounded-md text-center w-24 h-9"
-                />
-              </div>
               <div className="mb-4">
                 <p className="font-medium text-lg mb-5">Categoria</p>
                 <button
