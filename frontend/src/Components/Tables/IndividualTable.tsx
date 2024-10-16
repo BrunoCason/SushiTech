@@ -83,68 +83,35 @@ const IndividualTable = () => {
 
   const handlePlaceOrder = async () => {
     if (!tableDocId || cartItems.length === 0) return;
-  
+
     try {
       const tableRef = doc(db, "tables", tableDocId);
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
-  
-      // Cria um mapa dos produtos atuais por ID
-      const currentProductsMap = currentProducts.reduce((acc: any, product: any) => {
-        acc[product.id] = product; // Mapeia produtos atuais pelo ID
-        return acc;
-      }, {});
-  
+
       const orderNumber = generateOrderNumber(); // Gerar um número de pedido
-  
-      // Atualiza ou adiciona produtos
-      const updatedProducts = cartItems.map((item) => {
-        const existingProduct = currentProductsMap[item.id];
-        if (existingProduct) {
-          // Se o produto já existe, atualiza a quantidade
-          return {
-            ...existingProduct,
-            quantity: existingProduct.quantity + item.quantity, // Soma as quantidades
-            status: existingProduct.status === 'em producao' ? 'em producao' : 'pendente', // Mantém o status se já estiver em produção
-            image: products.find((product) => product.id === item.id)?.image || "",
-            orderNumber, // Adiciona o número do pedido ao produto
-          };
-        } else {
-          // Se o produto não existe, adiciona como novo
-          return {
-            ...item,
-            status: "pendente",
-            image: products.find((product) => product.id === item.id)?.image || "",
-            orderNumber, // Adiciona o número do pedido ao novo produto
-          };
-        }
-      });
-  
-      // Atualiza a lista de produtos, garantindo que não haja duplicatas
-      const mergedProducts = [...currentProducts];
-      updatedProducts.forEach((updatedProduct) => {
-        const index = mergedProducts.findIndex((product) => product.id === updatedProduct.id);
-        if (index > -1) {
-          // Se já existir, atualiza o produto
-          mergedProducts[index] = updatedProduct;
-        } else {
-          // Se não existir, adiciona o novo produto
-          mergedProducts.push(updatedProduct);
-        }
-      });
-  
+
+      // Cria um novo array de produtos que inclui os produtos do carrinho
+      const newProducts = cartItems.map((item) => ({
+        ...item,
+        status: "pendente", // Todos os novos produtos começam como pendentes
+        image: products.find((product) => product.id === item.id)?.image || "",
+        orderNumber, // Adiciona o número do pedido ao novo produto
+      }));
+
+      // Atualiza a lista de produtos, garantindo que os novos produtos sejam adicionados
+      const mergedProducts = [...currentProducts, ...newProducts]; // Combina produtos atuais com novos
+
       await updateDoc(tableRef, {
         products: mergedProducts, // Atualiza a lista de produtos com os novos e existentes
       });
-  
+
       dispatch(clearCart());
       console.log("Pedido feito com sucesso!");
     } catch (error) {
       console.error("Erro ao fazer o pedido: ", error);
     }
   };
-  
-  
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);

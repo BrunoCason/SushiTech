@@ -6,8 +6,8 @@ import PageTitle from "../PageTitle";
 import DeleteProductButton from "./DeleteProductButton";
 import EditProductForm from "./EditProductForm";
 import { MdEdit } from "react-icons/md";
-import { IoMdAdd } from "react-icons/io";
-import { IoMdImage } from "react-icons/io";
+import { IoMdAdd, IoMdImage } from "react-icons/io";
+import { FaSearch } from "react-icons/fa";
 
 const tagsOptions = [
   "Temaki",
@@ -29,32 +29,25 @@ const AddProducts: React.FC = () => {
   const [productDescription, setProductDescription] = useState<string>("");
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
-  const [products, setProducts] = useState<
-    {
-      id: string;
-      name: string;
-      description: string;
-      price: number;
-      image: string;
-      tags: string[];
-    }[]
-  >([]);
+  const [products, setProducts] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+    tags: string[];
+  }[]>([]);
   const [editProductId, setEditProductId] = useState<string | null>(null);
   const [editProductName, setEditProductName] = useState<string>("");
   const [editProductDescription, setEditProductDescription] = useState<string>("");
   const [editProductPrice, setEditProductPrice] = useState<number>(0);
   const [editProductTags, setEditProductTags] = useState<string[]>([]);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const handleAddProduct = async () => {
-    if (
-      productName &&
-      productDescription &&
-      productPrice > 0 &&
-      productImage
-    ) {
+    if (productName && productDescription && productPrice > 0 && productImage) {
       try {
         const imageRef = ref(storage, `products/${productImage.name}`);
         const snapshot = await uploadBytes(imageRef, productImage);
@@ -79,9 +72,7 @@ const AddProducts: React.FC = () => {
         console.error("Error adding product: ", error);
       }
     } else {
-      console.log(
-        "Please enter product name, price and upload an image."
-      );
+      console.log("Please enter product name, price and upload an image.");
     }
   };
 
@@ -113,11 +104,46 @@ const AddProducts: React.FC = () => {
     );
   };
 
+  // Filtrar produtos pela tag selecionada
+  const filteredProducts = selectedTag
+    ? products.filter((product) => product.tags.includes(selectedTag))
+    : products;
+
+  // Agrupar produtos por tags
+  const groupedProducts = products.reduce((acc, product) => {
+    product.tags.forEach((tag) => {
+      if (!acc[tag]) {
+        acc[tag] = [];
+      }
+      acc[tag].push(product);
+    });
+    return acc;
+  }, {} as Record<string, typeof products>);
+
   return (
     <div className="container mx-auto mt-32 font-inter">
       <PageTitle title="Produtos" />
 
-      <div className="border-b border-black pb-3 mb-5">
+      <div className="border-b border-black pb-3 mb-5 flex ">
+        {tagsOptions.map((tag) => (
+          <span
+            key={tag}
+            onClick={() => setSelectedTag(tag)}
+            className={`bg-gray-200 text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer hover:bg-gray-300 ${
+              selectedTag === tag ? "font-bold" : ""
+            }`}
+          >
+            {tag}
+          </span>
+        ))}
+        <div className="flex items-center border border-A7A7A7 rounded-md mr-5">
+          <FaSearch className="text-CC3333 ml-3" />
+          <input
+            type="text"
+            className="text-sm font-normal text-A7A7A7 focus:outline-none pl-5"
+            placeholder="Busque por item"
+          />
+        </div>
         <button
           className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
           onClick={() => setIsModalOpen(true)}
@@ -125,6 +151,133 @@ const AddProducts: React.FC = () => {
           <IoMdAdd className="h-4 w-4" />
           Adicionar Produto
         </button>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="font-inter">
+          {selectedTag
+            ? (
+              <div className="mb-10">
+                <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{selectedTag}</h3>
+                {filteredProducts.length > 0 ? (
+                  <div className="flex">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-y-5 gap-x-8">
+                      {filteredProducts.map((product) => (
+                        <div
+                          key={product.id}
+                          className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
+                        >
+                          <div className="w-56 mr-3 sm:mr-0">
+                            <p className="font-bold text-lg mb-2">
+                              {product.name}
+                            </p>
+                            <p className="font-medium text-sm text-E6E6E h-16 text-justify">
+                              {product.description}
+                            </p>
+                            <div className="flex justify-between">
+                              <p className="font-bold text-sm">
+                                R$ {product.price}
+                              </p>
+                              <div className="space-x-4">
+                                <button
+                                  onClick={() => {
+                                    setEditProductId(product.id);
+                                    setEditProductName(product.name);
+                                    setEditProductDescription(
+                                      product.description
+                                    );
+                                    setEditProductPrice(product.price);
+                                    setEditProductTags(product.tags);
+                                  }}
+                                >
+                                  <MdEdit />
+                                </button>
+                                <DeleteProductButton
+                                  productId={product.id}
+                                  productImageUrl={product.image}
+                                  onProductDeleted={fetchProducts}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-40 h-32 object-cover rounded-md"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Nenhum produto disponível.</p>
+                )}
+              </div>
+            ) : (
+              Object.keys(groupedProducts).map((tag) => (
+                <div key={tag} className="mb-10">
+                  <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{tag}</h3>
+                  {groupedProducts[tag].length > 0 ? (
+                    <div className="flex">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-y-5 gap-x-8">
+                        {groupedProducts[tag].map((product) => (
+                          <div
+                            key={product.id}
+                            className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
+                          >
+                            <div className="w-56 mr-3 sm:mr-0">
+                              <p className="font-bold text-lg mb-2">
+                                {product.name}
+                              </p>
+                              <p className="font-medium text-sm text-E6E6E h-16 text-justify">
+                                {product.description}
+                              </p>
+                              <div className="flex justify-between">
+                                <p className="font-bold text-sm">
+                                  R$ {product.price}
+                                </p>
+                                <div className="space-x-4">
+                                  <button
+                                    onClick={() => {
+                                      setEditProductId(product.id);
+                                      setEditProductName(product.name);
+                                      setEditProductDescription(
+                                        product.description
+                                      );
+                                      setEditProductPrice(product.price);
+                                      setEditProductTags(product.tags);
+                                    }}
+                                  >
+                                    <MdEdit />
+                                  </button>
+                                  <DeleteProductButton
+                                    productId={product.id}
+                                    productImageUrl={product.image}
+                                    onProductDeleted={fetchProducts}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-40 h-32 object-cover rounded-md"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Nenhum produto disponível.</p>
+                  )}
+                </div>
+              ))
+            )}
+        </div>
       </div>
 
       {isModalOpen && (
@@ -149,7 +302,7 @@ const AddProducts: React.FC = () => {
                 </label>
               </div>
               <div className="w-72">
-                <p className="font-medium text-xl mb-3">Adicionar Produto</p>
+                <p className="font-medium text-xl mb-4">Adicionar Produto</p>
                 <p className="font-medium text-lg">Nome</p>
                 <input
                   type="text"
@@ -158,7 +311,7 @@ const AddProducts: React.FC = () => {
                   onChange={(e) => setProductName(e.target.value)}
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
-                <p className="font-medium text-lg mt-3">Descrição</p>
+                <p className="font-medium text-lg mt-4">Descrição</p>
                 <input
                   type="text"
                   placeholder="Descrição do produto"
@@ -166,7 +319,7 @@ const AddProducts: React.FC = () => {
                   onChange={(e) => setProductDescription(e.target.value)}
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
-                <p className="font-medium text-lg mt-3">Preço</p>
+                <p className="font-medium text-lg mt-4">Preço</p>
                 <input
                   type="number"
                   placeholder="R$"
@@ -175,11 +328,11 @@ const AddProducts: React.FC = () => {
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
                 <div className="flex justify-between mt-3">
-                  <div className="mb-4">
+                  <div className="my-4 flex">
                     <p className="font-medium text-lg mb-5">Categoria</p>
                     <button
                       onClick={() => setShowTagsMenu(!showTagsMenu)}
-                      className="border border-black rounded-md w-24 h-9"
+                      className="border border-black rounded-md w-24 h-9 ml-3"
                     >
                       {productTags.length
                         ? productTags.join(", ")
@@ -223,52 +376,6 @@ const AddProducts: React.FC = () => {
         </div>
       )}
 
-      <div className="flex justify-center">
-      <div className="font-inter grid grid-cols-2 2xl:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="flex justify-between border w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
-          >
-            <div className="w-56">
-              <p className="font-bold text-lg mb-2">
-                {product.name}
-              </p>
-              <p className="font-medium text-sm text-E6E6E h-16 text-justify">{product.description}</p>
-              <div className="flex justify-between">
-                <p className="font-bold text-sm">R$ {product.price}</p>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => {
-                      setEditProductId(product.id);
-                      setEditProductName(product.name);
-                      setEditProductDescription(product.description);
-                      setEditProductPrice(product.price);
-                      setEditProductTags(product.tags);
-                    }}
-                  >
-                    <MdEdit />
-                  </button>
-                  <DeleteProductButton
-                    productId={product.id}
-                    productImageUrl={product.image}
-                    onProductDeleted={fetchProducts}
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-40 h-32 object-cover rounded-md"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      </div>
-
       {editProductId && (
         <EditProductForm
           productId={editProductId}
@@ -279,7 +386,7 @@ const AddProducts: React.FC = () => {
           onUpdate={() => {
             setEditProductId(null);
             setEditProductName("");
-            setEditProductDescription("")
+            setEditProductDescription("");
             setEditProductPrice(0);
             setEditProductTags([]);
             fetchProducts();
