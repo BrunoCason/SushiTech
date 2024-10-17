@@ -8,6 +8,7 @@ import EditProductForm from "./EditProductForm";
 import { MdEdit } from "react-icons/md";
 import { IoMdAdd, IoMdImage } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
+import MaskedInput from "react-text-mask";
 
 const tagsOptions = [
   "Temaki",
@@ -25,7 +26,7 @@ const tagsOptions = [
 
 const AddProducts = () => {
   const [productName, setProductName] = useState<string>("");
-  const [productPrice, setProductPrice] = useState<number>(0);
+  const [productPrice, setProductPrice] = useState<string>("")
   const [productDescription, setProductDescription] = useState<string>("");
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
@@ -50,24 +51,44 @@ const AddProducts = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const handlePriceChange = (value: string) => {
+    // Remove caracteres não numéricos, exceto a vírgula
+    const numericValue = value.replace(/[^\d]/g, '');
+  
+    // Lógica para formatar o preço
+    if (numericValue.length === 0) {
+      setProductPrice("0,00"); // Se não houver entrada, exibe 0,00
+    } else if (numericValue.length < 3) {
+      // Se menos de 3 dígitos, formate para 0,0X
+      setProductPrice(`0,0${numericValue.padStart(1, '0')}`); // Garante pelo menos 1 dígito
+    } else {
+      // Formata como R$ 0,00
+      const reais = numericValue.slice(0, -2) || "0"; // Os últimos 2 são os centavos
+      const centavos = numericValue.slice(-2).padStart(2, '0'); // Garante que tenha 2 dígitos
+      setProductPrice(`${reais},${centavos}`);
+    }
+  };
+  
+  // Função para adicionar o produto
   const handleAddProduct = async () => {
-    if (productName && productDescription && productPrice > 0 && productImage) {
+    const priceInCents = parseFloat(productPrice.replace(',', '.')) * 100; // Converter para centavos
+    if (productName && productDescription && priceInCents > 0 && productImage) {
       try {
         const imageRef = ref(storage, `products/${productImage.name}`);
         const snapshot = await uploadBytes(imageRef, productImage);
         const imageUrl = await getDownloadURL(snapshot.ref);
-
+  
         await addDoc(collection(db, "products"), {
           name: productName,
           description: productDescription,
-          price: productPrice,
+          price: priceInCents, // Armazenar em centavos
           image: imageUrl,
           tags: productTags,
         });
         console.log("Product added successfully!");
         setProductName("");
         setProductDescription("");
-        setProductPrice(0);
+        setProductPrice(""); // Limpar o campo de preço
         setProductImage(null);
         setProductTags([]);
         fetchProducts();
@@ -78,6 +99,11 @@ const AddProducts = () => {
     } else {
       console.log("Please enter product name, price and upload an image.");
     }
+  };
+
+  const formatPrice = (priceInCents: number) => {
+    const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
+    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
   };
 
   const fetchProducts = async () => {
@@ -270,7 +296,7 @@ const AddProducts = () => {
                             </p>
                             <div className="flex justify-between">
                               <p className="font-bold text-sm">
-                                R$ {product.price}
+                                R$ {formatPrice(product.price)}
                               </p>
                               <div className="space-x-4">
                                 <button
@@ -354,13 +380,12 @@ const AddProducts = () => {
                   className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
                 />
                 <p className="font-medium text-lg mt-4">Preço</p>
-                <input
-                  type="number"
-                  placeholder="R$"
-                  value={productPrice}
-                  onChange={(e) => setProductPrice(Number(e.target.value))}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
-                />
+                <MaskedInput
+  mask={[/\d/, ',', /\d/, /\d/]} // 3 dígitos seguidos de 2 dígitos após a vírgula
+  value={productPrice}
+  onChange={(e) => handlePriceChange(e.target.value)}
+  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
+/>
                 <div className="flex justify-between mt-3">
                   <div className="my-4 flex">
                     <p className="font-medium text-lg mb-5">Categoria</p>

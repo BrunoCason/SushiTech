@@ -7,3 +7,5 @@ export const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.tes
 export const validatePassword = (password: string) => password.length >= 8;
 
 export const phoneMask = ['(', /[1-9]/, /\d/, ')', ' ', /\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/];
+
+export const priceMask = [/[1-9]/, /\d/, ',', /\d/, /\d/];
