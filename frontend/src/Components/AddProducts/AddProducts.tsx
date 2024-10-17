@@ -48,6 +48,7 @@ const AddProducts = () => {
   const [showTagsMenu, setShowTagsMenu] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleAddProduct = async () => {
     if (productName && productDescription && productPrice > 0 && productImage) {
@@ -107,7 +108,7 @@ const AddProducts = () => {
     );
   };
 
-  /// Agrupar produtos por tags
+  // Agrupar produtos por tags
   const groupedProducts = products.reduce((acc, product) => {
     product.tags.forEach((tag) => {
       if (!acc[tag]) {
@@ -118,19 +119,24 @@ const AddProducts = () => {
     return acc;
   }, {} as Record<string, typeof products>);
 
-  // Filtrar produtos pela tag selecionada
-  const filteredProducts =
-    selectedTags.length > 0
-      ? products.filter((product) =>
-          selectedTags.some((tag) => product.tags.includes(tag))
-        )
-      : [];
+  // Filtrar produtos pela tag selecionada e barra de pesquisa
+  const filteredProducts = products
+    .filter((product) =>
+      selectedTags.length > 0
+        ? selectedTags.some((tag) => product.tags.includes(tag))
+        : true
+    )
+    .filter((product) =>
+      searchTerm
+        ? product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        : true
+    );
 
   return (
     <div className="container mx-auto mt-20 font-inter">
       <PageTitle title="Produtos" />
 
-      <div className="border-b border-black pb-3 mb-5 flex flex-col lg:flex-row justify-center items-center">
+      <div className="border-b border-black lg:space-x-5 xl:space-x-10 pb-3 mb-5 flex flex-col lg:flex-row justify-center items-center mt-5 sm:mx-10">
         <div className="p-1 flex flex-wrap justify-center">
           {tagsOptions.map((tag) => (
             <span
@@ -159,16 +165,18 @@ const AddProducts = () => {
             </span>
           ))}
         </div>
-        <div className="flex items-center border border-A7A7A7 rounded-md mr-5 h-10 mb-4 lg:mb-0">
+        <div className="flex justify-center items-center border border-A7A7A7 rounded-md h-10 mb-4 lg:mb-0">
           <FaSearch className="text-CC3333 ml-3" />
           <input
             type="text"
             className="text-sm font-normal text-A7A7A7 focus:outline-none pl-14 lg:pl-3"
             placeholder="Busque por item"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} 
           />
         </div>
         <button
-          className="flex justify-center items-center text-sm w-40 h-10 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
+          className="flex justify-center items-center text-sm w-44 h-10 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
           onClick={() => setIsModalOpen(true)}
         >
           <IoMdAdd className="h-4 w-4" />
@@ -178,7 +186,7 @@ const AddProducts = () => {
 
       <div className="flex justify-center">
         <div className="font-inter">
-          {selectedTags.length > 0 ? (
+          {selectedTags.length > 0 || searchTerm ? (
             <div className="mb-10">
               <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">
                 {selectedTags.join(" / ")}
@@ -189,13 +197,13 @@ const AddProducts = () => {
                     {filteredProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
+                        className="flex justify-between border mx-3 sm:mx-0 sm:w-432px border-A7A7A7 rounded-md shadow-md p-3"
                       >
                         <div className="w-56 mr-3 sm:mr-0">
                           <p className="font-bold text-lg mb-2">
                             {product.name}
                           </p>
-                          <p className="font-medium text-sm text-E6E6E h-16 text-justify">
+                          <p className="font-medium text-sm text-E6E6E h-16 text-justify mb-10 sm:mb-0">
                             {product.description}
                           </p>
                           <div className="flex justify-between">
@@ -228,7 +236,7 @@ const AddProducts = () => {
                           <img
                             src={product.image}
                             alt={product.name}
-                            className="w-40 h-32 object-cover rounded-md"
+                            className="w-40 h-full sm:h-32 object-cover rounded-md"
                           />
                         </div>
                       </div>
@@ -251,13 +259,13 @@ const AddProducts = () => {
                       {groupedProducts[tag].map((product) => (
                         <div
                           key={product.id}
-                          className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
+                          className="flex justify-between border mx-3 sm:mx-0 sm:w-432px border-A7A7A7 rounded-md shadow-md p-3"
                         >
                           <div className="w-56 mr-3 sm:mr-0">
                             <p className="font-bold text-lg mb-2">
                               {product.name}
                             </p>
-                            <p className="font-medium text-sm text-E6E6E h-16 text-justify">
+                            <p className="font-medium text-sm text-E6E6E h-16 text-justify mb-10 sm:mb-0">
                               {product.description}
                             </p>
                             <div className="flex justify-between">
@@ -290,7 +298,7 @@ const AddProducts = () => {
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-40 h-32 object-cover rounded-md"
+                              className="w-40 h-full sm:h-32 object-cover rounded-md"
                             />
                           </div>
                         </div>

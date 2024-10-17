@@ -5,11 +5,13 @@ import { fetchUsers } from '../../Services/userService';
 import { User, UserListOverlayProps } from "../../Types";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { MdEdit } from "react-icons/md";
+import ModalConfirmation from '../ModalConfirmation';
 
 const UserListOverlay: React.FC<UserListOverlayProps> = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [deleteUserEmail, setDeleteUserEmail] = useState<string | null>(null);
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Função para buscar e definir os usuários no estado
@@ -35,10 +37,14 @@ const UserListOverlay: React.FC<UserListOverlayProps> = () => {
 
   const handleCloseChangePassword = () => {
     setSelectedUser(null);
+    setModalMessage('Senha alterada com sucesso!');
+    setTimeout(() => setModalMessage(null), 3000);
   };
 
   const handleUserDeleted = (email: string) => {
     setUsers(users.filter(user => user.email !== email));
+    setModalMessage('Usuário excluído com sucesso!');
+    setTimeout(() => setModalMessage(null), 3000);
   };
 
   return (
@@ -73,7 +79,7 @@ const UserListOverlay: React.FC<UserListOverlayProps> = () => {
                 </li>
               ))
             ) : (
-              <p className="text-gray-500">Nenhum usuário encontrado</p>
+              <p className="text-gray-500 text-center font-bold">Nenhum usuário encontrado</p>
             )}
           </ul>
         )}
@@ -84,6 +90,8 @@ const UserListOverlay: React.FC<UserListOverlayProps> = () => {
           onUserDeleted={handleUserDeleted}
         />
       )}
+
+      {modalMessage && <ModalConfirmation message={modalMessage} />}
     </div>
   );
 };

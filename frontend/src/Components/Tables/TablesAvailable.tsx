@@ -18,7 +18,7 @@ const TablesAvailable = () => {
   const [editTableId, setEditTableId] = useState<string | null>(null);
   const [editTableNumber, setEditTableNumber] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const freeTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-black.png?alt=media&token=abe85ef6-5025-40cb-9b1e-596e60a1ec20";
   const occupiedTableImage = "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
@@ -103,7 +103,7 @@ const TablesAvailable = () => {
         )}
       </div>
       
-      <div className="flex justify-around">
+      <div className="flex justify-around ">
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14 2xl:gap-24">
           {tables
             .sort((a, b) => Number(a.number) - Number(b.number)) 

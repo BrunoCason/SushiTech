@@ -68,7 +68,6 @@ const MenuPerfil = () => {
                     {item.label}
                   </button>
                 </div>
-                {/* Adiciona a linha de separação entre os itens, exceto no último */}
                 {index < menuItems.length && (
                   <div className="border-b border-gray-300 mx-6 my-6"></div>
                 )}

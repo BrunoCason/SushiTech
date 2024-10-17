@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { deleteDoc, doc, getFirestore } from 'firebase/firestore';
 import { DeleteUserConfirmationProps } from "../../Types";
 import ModalConfirmation from '../ModalConfirmation';
+import { FaSpinner } from 'react-icons/fa';
 
 const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, onClose, onUserDeleted }) => {
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, 
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
       <div className="bg-white mx-10 pt-10 pb-7 px-4 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
         <div className="flex justify-center mb-8">
           <p className='flex justify-center items-center border-4 border-FACEA8 rounded-full h-20 w-20 text-FACEA8 font-normal text-5xl'>!</p>
@@ -66,8 +67,13 @@ const DeleteUserConfirmation: React.FC<DeleteUserConfirmationProps> = ({ email, 
             onClick={handleDeleteUser}
             className="bg-CC3333 text-white py-2 px-6 rounded hover:bg-red-600"
           >
-            {loading ? 'Excluindo...' : 'Confirmar'}
+            Confirmar
           </button>
+          {loading && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+            </div>
+          )}
         </div>
       </div>
       {modalMessage && (

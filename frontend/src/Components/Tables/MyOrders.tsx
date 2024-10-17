@@ -175,7 +175,7 @@ const MyOrders: React.FC = () => {
             </div>
             <h3 className="text-2xl">Atenção</h3>
             <p className="font-normal text-xl my-4">
-              Tem certeza de que deseja excluir esse usuário?
+              Tem certeza de que deseja cancelar esse pedido?
             </p>
             <div className="mt-4 flex justify-center">
               <button

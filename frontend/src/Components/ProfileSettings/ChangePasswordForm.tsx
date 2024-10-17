@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChangePasswordFormProps } from "../../Types";
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaSpinner } from 'react-icons/fa'; // Importando FaSpinner para usar como ícone de loading
 
 const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose }) => {
   const [newPassword, setNewPassword] = useState('');
@@ -28,7 +28,6 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose 
 
       if (response.ok) {
         onClose();
-        
       } else {
         const errorMessage = await response.text();
         setError(errorMessage);
@@ -43,7 +42,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose 
 
   return (
     <>
-      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
         <div className="bg-white py-8 px-16 rounded-lg shadow-lg font-inter font-bold text-base">
           <p className="font-normal mb-6">Alterar Senha de <span className='font-bold'>{email}</span></p>
           {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -77,7 +76,11 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ email, onClose 
               Confirmar
             </button>
           </div>
-          {loading && <p className="">Carregando...</p>}
+          {loading && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+            </div>
+          )}
         </div>
       </div>
     </>

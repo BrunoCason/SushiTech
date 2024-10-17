@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
-import { User, reauthenticateWithCredential, updatePassword, EmailAuthProvider } from 'firebase/auth';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import PageTitle from '../PageTitle';
-import { fetchUserProfile, updateUserProfile } from '../../Services/userService';
-import ModalConfirmation from '../ModalConfirmation';
+import { useState, useEffect } from "react";
+import {
+  User,
+  reauthenticateWithCredential,
+  updatePassword,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
+import PageTitle from "../PageTitle";
+import {
+  fetchUserProfile,
+  updateUserProfile,
+} from "../../Services/userService";
+import ModalConfirmation from "../ModalConfirmation";
 import { FaUserLarge } from "react-icons/fa6";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
@@ -13,23 +21,26 @@ interface ProfileSettingsFormProps {
 }
 
 const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
+  const [currentPasswordError, setCurrentPasswordError] = useState<
+    string | null
+  >(null);
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
-  const [name, setName] = useState<string>('');
-  const [phone, setPhone] = useState<string>('');
-  const [modalMessage, setModalMessage] = useState<string>('');
+  const [name, setName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [modalMessage, setModalMessage] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserProfileData = async () => {
       try {
         const profileData = await fetchUserProfile(user.uid);
-        setName(profileData.name || '');
-        setPhone(profileData.phone || '');
+        setName(profileData.name || "");
+        setPhone(profileData.phone || "");
       } catch (error) {
         console.error("Erro ao buscar dados do perfil:", error);
       }
@@ -42,9 +53,11 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
     e.preventDefault();
     setCurrentPasswordError(null);
     setNewPasswordError(null);
+    setLoading(true);
 
     if (newPassword && newPassword === currentPassword) {
-      setNewPasswordError('A nova senha não pode ser a mesma que a atual');
+      setNewPasswordError("A nova senha não pode ser a mesma que a atual");
+      setLoading(false);
       return;
     }
 
@@ -55,30 +68,35 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
       // Se a nova senha for fornecida, atualiza a senha
       if (newPassword) {
         if (!user.email) {
-          throw new Error('Email do usuário não disponível');
+          throw new Error("Email do usuário não disponível");
         }
 
-        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        const credential = EmailAuthProvider.credential(
+          user.email,
+          currentPassword
+        );
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);
       }
 
       // Exibe o modal de sucesso
-      setModalMessage('Perfil atualizado com sucesso!');
+      setModalMessage("Perfil atualizado com sucesso!");
       setShowModal(true);
 
       // Limpa os campos
-      setCurrentPassword('');
-      setNewPassword('');
-      
+      setCurrentPassword("");
+      setNewPassword("");
+
       // Fecha o modal após 3 segundos
       setTimeout(() => setShowModal(false), 3000);
     } catch (err) {
-      if ((err as Error).message.includes('auth/wrong-password')) {
-        setCurrentPasswordError('Senha incorreta');
+      if ((err as Error).message.includes("auth/wrong-password")) {
+        setCurrentPasswordError("Senha incorreta");
       } else {
-        setCurrentPasswordError('Senha incorreta');
+        setCurrentPasswordError("Senha incorreta");
       }
+    } finally {
+      setLoading(false); // Desativa o estado de carregamento
     }
   };
 
@@ -97,13 +115,15 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
             onChange={(e) => setName(e.target.value)}
             className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
           />
-        <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3"/>
+          <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3" />
         </div>
         <div className="mb-4 relative">
           <label className="block text-gray-700">Email</label>
-          <p className="text-gray-900 border-black border-b py-2">{user.email}</p>
-          <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4"/>
-      </div>
+          <p className="text-gray-900 border-black border-b py-2">
+            {user.email}
+          </p>
+          <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4" />
+        </div>
         <div className="mb-4 relative">
           <label className="block text-gray-700">Telefone</label>
           <input
@@ -112,15 +132,17 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
             onChange={(e) => setPhone(e.target.value)}
             className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
           />
-          <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3"/>
+          <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3" />
         </div>
         <div className="relative mb-4">
           <label className="block text-gray-700">Senha Atual</label>
           <input
-            type={showCurrentPassword ? 'text' : 'password'}
+            type={showCurrentPassword ? "text" : "password"}
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${currentPasswordError ? 'border-red-500' : 'border-black'}`}
+            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+              currentPasswordError ? "border-red-500" : "border-black"
+            }`}
             placeholder="Digite sua senha atual"
           />
           <button
@@ -141,10 +163,12 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
         <div className="relative mb-7">
           <label className="block text-gray-700">Nova Senha</label>
           <input
-            type={showNewPassword ? 'text' : 'password'}
+            type={showNewPassword ? "text" : "password"}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${newPasswordError ? 'border-red-500' : 'border-black'}`}
+            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+              newPasswordError ? "border-red-500" : "border-black"
+            }`}
             placeholder="Digite sua nova senha"
           />
           <button
@@ -164,9 +188,17 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
         </div>
         <button
           type="submit"
-          className="w-full bg-CC3333 text-white font-bold py-2 px-4 rounded-md"
+          className={`w-full bg-CC3333 text-white font-bold py-2 px-4 rounded-md ${
+            loading ? "cursor-not-allowed" : ""
+          }`}
+          disabled={loading}
         >
           Atualizar
+          {loading && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+            </div>
+          )}
         </button>
       </form>
 
