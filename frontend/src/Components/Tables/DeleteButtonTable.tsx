@@ -3,6 +3,7 @@ import { deleteDoc, doc, getFirestore } from "firebase/firestore";
 import { DeleteButtonTableProps } from "../../Types";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation"; // Import do Modal
 
 const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
   tableId,
@@ -12,6 +13,7 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const db = getFirestore();
 
   const handleDeleteUser = async () => {
@@ -33,19 +35,18 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
       const responseData = await response.json();
 
       if (response.ok) {
-        // Obtém o UID do usuário excluído do backend
         const { uid } = responseData;
-
-        // Exclui o documento do Firestore com o UID do usuário
         const userDocRef = doc(db, "users", uid);
         await deleteDoc(userDocRef);
-
-        // Exclui o documento da mesa no Firestore
         await deleteDoc(doc(db, "tables", tableId));
 
-        alert("Mesa e usuário excluídos com sucesso.");
         onTableDeleted();
         setShowConfirm(false);
+        setShowConfirmation(true);
+
+        setTimeout(() => {
+          setShowConfirmation(false);
+        }, 9000);
       } else {
         setError(responseData.error || "Erro ao excluir usuário.");
       }
@@ -68,7 +69,9 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
               </p>
             </div>
             <h3 className="text-2xl text-black">Atenção</h3>
-            <p className="font-normal text-xl my-4 text-black">Tem certeza de que deseja excluir essa mesa?</p>
+            <p className="font-normal text-xl my-4 text-black">
+              Tem certeza de que deseja excluir essa mesa?
+            </p>
             {error && <p className="text-red-500">{error}</p>}
             <div className="mt-4 flex justify-center">
               <button
@@ -81,11 +84,12 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
                 onClick={handleDeleteUser}
                 className="bg-CC3333 text-white py-2 px-6 rounded hover:bg-red-600"
               >
+                Confirmar
                 {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
-            </div>
-          )}
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+                  </div>
+                )}
               </button>
             </div>
           </div>
@@ -99,6 +103,9 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
         }}
         className="cursor-pointer w-5 h-5"
       />
+
+      {/* Modal de Confirmação */}
+      {showConfirmation && <ModalConfirmation message="Mesa excluída com sucesso!" />}
     </div>
   );
 };

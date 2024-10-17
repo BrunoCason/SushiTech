@@ -4,11 +4,16 @@ import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "../../Services/firebaseConfig";
 import { DeleteProductButtonProps } from "../../Types";
 import { RiDeleteBin6Fill } from "react-icons/ri";
+import { FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation"; // Importe o modal de confirmação
 
 const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, productImageUrl, onProductDeleted }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Estado para o loading
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Estado para o modal de confirmação
 
   const handleDeleteProduct = async () => {
+    setLoading(true); // Iniciar o loading
     try {
       // Excluir produto do Firestore
       await deleteDoc(doc(db, "products", productId));
@@ -21,8 +26,18 @@ const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, pr
       await deleteObject(imageRef);
 
       onProductDeleted(); // Atualizar a lista de produtos
+
+      // Finalizar o loading e mostrar o modal de confirmação
+      setLoading(false);
+      setShowConfirmationModal(true);
+
+      setTimeout(() => {
+        setShowConfirmationModal(false);
+      }, 3000);
+      
     } catch (error) {
       console.error(error);
+      setLoading(false); // Parar o loading em caso de erro
     }
   };
 
@@ -35,8 +50,9 @@ const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, pr
   };
 
   const handleConfirmDelete = () => {
-    handleDeleteProduct();
     setIsModalOpen(false);
+
+    handleDeleteProduct();
   };
 
   return (
@@ -47,28 +63,38 @@ const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({ productId, pr
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white mx-10 pt-10 pb-7 px-4 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
-          <div className="flex justify-center mb-8">
-            <p className='flex justify-center items-center border-4 border-FACEA8 rounded-full h-20 w-20 text-FACEA8 font-normal text-5xl'>!</p>
-          </div>
-          <h3 className="text-2xl">Atenção</h3>
-          <p className="font-normal text-xl my-4">Tem certeza de que deseja excluir esse produto?</p>
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={handleCloseModal}
-              className="bg-ADABAC text-white py-2 px-6 mr-16 rounded"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirmDelete}
-              className="bg-CC3333 text-white py-2 px-6 rounded"
-            >
-              Confirmar
-            </button>
+          <div className="bg-white mx-10 pt-10 pb-7 px-4 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
+            <div className="flex justify-center mb-8">
+              <p className='flex justify-center items-center border-4 border-FACEA8 rounded-full h-20 w-20 text-FACEA8 font-normal text-5xl'>!</p>
+            </div>
+            <h3 className="text-2xl">Atenção</h3>
+            <p className="font-normal text-xl my-4">Tem certeza de que deseja excluir esse produto?</p>
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleCloseModal}
+                className="bg-ADABAC text-white py-2 px-6 mr-16 rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="bg-CC3333 text-white py-2 px-6 rounded"
+              >
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+        </div>
+      )}
+
+      {showConfirmationModal && (
+        <ModalConfirmation message="Produto excluído com sucesso!" />
       )}
     </>
   );

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { collection, getDocs, query, where, DocumentData, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../Services/firebaseConfig";
 import PageTitle from "../PageTitle";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 
-const MyOrders: React.FC = () => {
+const MyOrders = () => {
   const { id } = useParams<{ id: string }>();
   const [orders, setOrders] = useState<DocumentData[]>([]);
   const [showModal, setShowModal] = useState(false);

@@ -124,30 +124,28 @@ const IndividualTable = () => {
 
   const handlePlaceOrder = async () => {
     if (!tableDocId || cartItems.length === 0) return;
-
+  
     try {
       const tableRef = doc(db, "tables", tableDocId);
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
-
-      const orderNumber = generateOrderNumber(); // Gerar um número de pedido
-
+  
       // Cria um novo array de produtos que inclui os produtos do carrinho
       const newProducts = cartItems.map((item) => ({
         ...item,
         status: "pendente", // Todos os novos produtos começam como pendentes
         image: products.find((product) => product.id === item.id)?.image || "",
-        orderNumber, // Adiciona o número do pedido ao novo produto
+        orderNumber: generateOrderNumber(), // Gera um número único de pedido para cada produto
       }));
-
+  
       // Atualiza a lista de produtos, garantindo que os novos produtos sejam adicionados
-      const mergedProducts = [...currentProducts, ...newProducts]; // Combina produtos atuais com novos
-
+      const mergedProducts = [...currentProducts, ...newProducts];
+  
       await updateDoc(tableRef, {
         products: mergedProducts, // Atualiza a lista de produtos com os novos e existentes
       });
-
-      dispatch(clearCart());
+  
+      dispatch(clearCart()); // Limpa o carrinho após o pedido ser feito
     } catch (error) {
       console.error(error);
     }

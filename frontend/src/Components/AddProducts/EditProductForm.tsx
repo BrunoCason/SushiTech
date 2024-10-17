@@ -9,6 +9,7 @@ import {
 import { db, storage } from "../../Services/firebaseConfig";
 import { EditProductFormProps } from "../../Types";
 import { IoMdImage } from "react-icons/io";
+import { FaSpinner } from "react-icons/fa"; // Importação do ícone de loading
 
 const tagsOptions = [
   "Temaki",
@@ -41,6 +42,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   const [editProductImage, setEditProductImage] = useState<File | null>(null);
   const [editProductTags, setEditProductTags] = useState<string[]>(productTags);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
+  const [loading, setLoading] = useState(false); // Estado para o loading
 
   const handleEditProduct = async () => {
     if (
@@ -48,6 +50,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
       editProductDescription &&
       editProductPrice > 0
     ) {
+      setLoading(true); // Iniciar o loading
+
       try {
         let newImageUrl = "";
 
@@ -80,6 +84,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         onUpdate();
       } catch (error) {
         console.error("Error updating product: ", error);
+      } finally {
+        setLoading(false); // Parar o loading após a conclusão
       }
     } else {
       console.log("Please enter product name, price.");
@@ -178,6 +184,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               <button
                 onClick={handleEditProduct}
                 className="bg-CC3333 rounded-md text-white font-bold w-24 h-9"
+                disabled={loading} // Desabilitar o botão durante o loading
               >
                 Salvar
               </button>
@@ -185,6 +192,13 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Exibir loading durante a edição */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+        </div>
+      )}
     </div>
   );
 };
