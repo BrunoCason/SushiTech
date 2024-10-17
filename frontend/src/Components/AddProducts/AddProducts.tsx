@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../Services/firebaseConfig";
@@ -23,28 +23,31 @@ const tagsOptions = [
   "Katsu",
 ];
 
-const AddProducts: React.FC = () => {
+const AddProducts = () => {
   const [productName, setProductName] = useState<string>("");
   const [productPrice, setProductPrice] = useState<number>(0);
   const [productDescription, setProductDescription] = useState<string>("");
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
-  const [products, setProducts] = useState<{
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-    tags: string[];
-  }[]>([]);
+  const [products, setProducts] = useState<
+    {
+      id: string;
+      name: string;
+      description: string;
+      price: number;
+      image: string;
+      tags: string[];
+    }[]
+  >([]);
   const [editProductId, setEditProductId] = useState<string | null>(null);
   const [editProductName, setEditProductName] = useState<string>("");
-  const [editProductDescription, setEditProductDescription] = useState<string>("");
+  const [editProductDescription, setEditProductDescription] =
+    useState<string>("");
   const [editProductPrice, setEditProductPrice] = useState<number>(0);
   const [editProductTags, setEditProductTags] = useState<string[]>([]);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const handleAddProduct = async () => {
     if (productName && productDescription && productPrice > 0 && productImage) {
@@ -67,7 +70,7 @@ const AddProducts: React.FC = () => {
         setProductImage(null);
         setProductTags([]);
         fetchProducts();
-        setIsModalOpen(false); // Fecha o modal após adicionar o produto
+        setIsModalOpen(false);
       } catch (error) {
         console.error("Error adding product: ", error);
       }
@@ -104,12 +107,7 @@ const AddProducts: React.FC = () => {
     );
   };
 
-  // Filtrar produtos pela tag selecionada
-  const filteredProducts = selectedTag
-    ? products.filter((product) => product.tags.includes(selectedTag))
-    : products;
-
-  // Agrupar produtos por tags
+  /// Agrupar produtos por tags
   const groupedProducts = products.reduce((acc, product) => {
     product.tags.forEach((tag) => {
       if (!acc[tag]) {
@@ -120,32 +118,57 @@ const AddProducts: React.FC = () => {
     return acc;
   }, {} as Record<string, typeof products>);
 
+  // Filtrar produtos pela tag selecionada
+  const filteredProducts =
+    selectedTags.length > 0
+      ? products.filter((product) =>
+          selectedTags.some((tag) => product.tags.includes(tag))
+        )
+      : [];
+
   return (
-    <div className="container mx-auto mt-32 font-inter">
+    <div className="container mx-auto mt-20 font-inter">
       <PageTitle title="Produtos" />
 
-      <div className="border-b border-black pb-3 mb-5 flex ">
-        {tagsOptions.map((tag) => (
-          <span
-            key={tag}
-            onClick={() => setSelectedTag(tag)}
-            className={`bg-gray-200 text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer hover:bg-gray-300 ${
-              selectedTag === tag ? "font-bold" : ""
-            }`}
-          >
-            {tag}
-          </span>
-        ))}
-        <div className="flex items-center border border-A7A7A7 rounded-md mr-5">
+      <div className="border-b border-black pb-3 mb-5 flex flex-col lg:flex-row justify-center items-center">
+        <div className="p-1 flex flex-wrap justify-center">
+          {tagsOptions.map((tag) => (
+            <span
+              key={tag}
+              onClick={() =>
+                setSelectedTags((prevSelectedTags) => {
+                  // Verifica se a tag já está selecionada
+                  if (prevSelectedTags.includes(tag)) {
+                    // Remove a tag se já estiver selecionada
+                    return prevSelectedTags.filter(
+                      (selectedTag) => selectedTag !== tag
+                    );
+                  } else {
+                    // Adiciona a tag se não estiver selecionada
+                    return [...prevSelectedTags, tag];
+                  }
+                })
+              }
+              className={`text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer ${
+                selectedTags.includes(tag)
+                  ? "font-bold text-white bg-CC3333"
+                  : ""
+              }`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center border border-A7A7A7 rounded-md mr-5 h-10 mb-4 lg:mb-0">
           <FaSearch className="text-CC3333 ml-3" />
           <input
             type="text"
-            className="text-sm font-normal text-A7A7A7 focus:outline-none pl-5"
+            className="text-sm font-normal text-A7A7A7 focus:outline-none pl-14 lg:pl-3"
             placeholder="Busque por item"
           />
         </div>
         <button
-          className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
+          className="flex justify-center items-center text-sm w-40 h-10 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
           onClick={() => setIsModalOpen(true)}
         >
           <IoMdAdd className="h-4 w-4" />
@@ -155,14 +178,77 @@ const AddProducts: React.FC = () => {
 
       <div className="flex justify-center">
         <div className="font-inter">
-          {selectedTag
-            ? (
-              <div className="mb-10">
-                <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{selectedTag}</h3>
-                {filteredProducts.length > 0 ? (
+          {selectedTags.length > 0 ? (
+            <div className="mb-10">
+              <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">
+                {selectedTags.join(" / ")}
+              </h3>
+              {filteredProducts.length > 0 ? (
+                <div className="flex">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-y-5 gap-x-8">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
+                      >
+                        <div className="w-56 mr-3 sm:mr-0">
+                          <p className="font-bold text-lg mb-2">
+                            {product.name}
+                          </p>
+                          <p className="font-medium text-sm text-E6E6E h-16 text-justify">
+                            {product.description}
+                          </p>
+                          <div className="flex justify-between">
+                            <p className="font-bold text-sm">
+                              R$ {product.price}
+                            </p>
+                            <div className="space-x-4">
+                              <button
+                                onClick={() => {
+                                  setEditProductId(product.id);
+                                  setEditProductName(product.name);
+                                  setEditProductDescription(
+                                    product.description
+                                  );
+                                  setEditProductPrice(product.price);
+                                  setEditProductTags(product.tags);
+                                }}
+                              >
+                                <MdEdit />
+                              </button>
+                              <DeleteProductButton
+                                productId={product.id}
+                                productImageUrl={product.image}
+                                onProductDeleted={fetchProducts}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-40 h-32 object-cover rounded-md"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-E6E6E font-bold">
+                  Nenhum produto encontrado
+                </p>
+              )}
+            </div>
+          ) : (
+            Object.keys(groupedProducts).map((tag) => (
+              <div key={tag} className="mb-10">
+                <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{tag}</h3>
+                {groupedProducts[tag].length > 0 ? (
                   <div className="flex">
                     <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-y-5 gap-x-8">
-                      {filteredProducts.map((product) => (
+                      {groupedProducts[tag].map((product) => (
                         <div
                           key={product.id}
                           className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
@@ -212,71 +298,11 @@ const AddProducts: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-gray-500">Nenhum produto disponível.</p>
+                  <p className="text-gray-500">Nenhum produto disponível</p>
                 )}
               </div>
-            ) : (
-              Object.keys(groupedProducts).map((tag) => (
-                <div key={tag} className="mb-10">
-                  <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{tag}</h3>
-                  {groupedProducts[tag].length > 0 ? (
-                    <div className="flex">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-y-5 gap-x-8">
-                        {groupedProducts[tag].map((product) => (
-                          <div
-                            key={product.id}
-                            className="flex justify-between border mx-3 sm:mx-0 sm:w-432px h-156px border-A7A7A7 rounded-md shadow-md p-3"
-                          >
-                            <div className="w-56 mr-3 sm:mr-0">
-                              <p className="font-bold text-lg mb-2">
-                                {product.name}
-                              </p>
-                              <p className="font-medium text-sm text-E6E6E h-16 text-justify">
-                                {product.description}
-                              </p>
-                              <div className="flex justify-between">
-                                <p className="font-bold text-sm">
-                                  R$ {product.price}
-                                </p>
-                                <div className="space-x-4">
-                                  <button
-                                    onClick={() => {
-                                      setEditProductId(product.id);
-                                      setEditProductName(product.name);
-                                      setEditProductDescription(
-                                        product.description
-                                      );
-                                      setEditProductPrice(product.price);
-                                      setEditProductTags(product.tags);
-                                    }}
-                                  >
-                                    <MdEdit />
-                                  </button>
-                                  <DeleteProductButton
-                                    productId={product.id}
-                                    productImageUrl={product.image}
-                                    onProductDeleted={fetchProducts}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-40 h-32 object-cover rounded-md"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">Nenhum produto disponível.</p>
-                  )}
-                </div>
-              ))
-            )}
+            ))
+          )}
         </div>
       </div>
 

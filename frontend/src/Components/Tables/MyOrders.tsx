@@ -9,7 +9,7 @@ const MyOrders: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [orders, setOrders] = useState<DocumentData[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState<number | null>(null); // Índice do pedido a ser cancelado
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,7 +37,7 @@ const MyOrders: React.FC = () => {
   // Função para cancelar o pedido
   const handleCancelOrder = (index: number) => {
     setOrderToCancel(index); // Armazena o índice do pedido que será cancelado
-    setShowModal(true); // Abre o modal
+    setShowModal(true);
   };
 
   const confirmCancelOrder = async () => {
@@ -62,11 +62,11 @@ const MyOrders: React.FC = () => {
         console.error("Error cancelling order: ", error);
       }
     }
-    setShowModal(false); // Fecha o modal
+    setShowModal(false);
   };
 
   const cancelCancelOrder = () => {
-    setShowModal(false); // Fecha o modal sem cancelar
+    setShowModal(false);
   };
 
   // Calcula o total dos pedidos
@@ -89,7 +89,7 @@ const MyOrders: React.FC = () => {
       </Link>
       <div className="flex">
         <div className="w-9/12 mr-8">
-          <div className="bg-CC3333 text-base text-white font-medium py-4 mb-10">
+          <div className="bg-CC3333 text-base text-white font-medium py-4 mb-10 rounded-md">
             <div className="grid grid-cols-5 text-center ml-24 mr-5">
               <p>Item</p>
               <p>Preço</p>
@@ -107,7 +107,7 @@ const MyOrders: React.FC = () => {
                     alt={order.name}
                     className="w-24 h-20 object-cover rounded-md"
                   />
-                  <div className="grid grid-cols-5 text-center w-full">
+                  <div className="grid grid-cols-5 text-center w-full text-E6E6E">
                     <p>{order.name}</p>
                     <p>{order.price}</p>
                     <p>{order.quantity}</p>
@@ -134,7 +134,7 @@ const MyOrders: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-CC3333 text-white py-4 px-6 w-72 h-full flex flex-col justify-between">
+        <div className="bg-CC3333 rounded-md text-white py-4 px-6 w-72 h-full flex flex-col justify-between">
           <div>
             <p className="font-medium text-3xl text-center mb-5">Total</p>
             <div className="font-medium text-base flex justify-between mb-11">
