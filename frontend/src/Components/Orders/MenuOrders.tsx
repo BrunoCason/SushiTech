@@ -4,7 +4,8 @@ import InProductionProducts from "./InProductionProducts";
 import ReadyOrders from "./ReadyOrders";
 
 const MenuOrders = () => {
-  const [activeComponent, setActiveComponent] = useState<string>("profileSettings");
+  const [activeComponent, setActiveComponent] =
+    useState<string>("pendingProducts"); // Mudando para 'pendingProducts'
 
   // Função para renderizar o componente de acordo com o menu selecionado
   const renderComponent = () => {
@@ -12,9 +13,9 @@ const MenuOrders = () => {
       case "pendingProducts":
         return <PendingProducts />;
       case "inProductionProducts":
-        return <InProductionProducts />
+        return <InProductionProducts />;
       case "readyOrders":
-        return <ReadyOrders />
+        return <ReadyOrders />;
       default:
         return <PendingProducts />;
     }
@@ -30,10 +31,15 @@ const MenuOrders = () => {
     <div className="container mx-auto mt-20 font-inter">
       <ul className="flex flex-wrap sm:flex-nowrap justify-around items-center">
         {menuItems.map((item) => (
-          <li key={item.id} className="mb-2 font-bold text-lg md:text-3xl text-E6E6E px-10">
+          <li
+            key={item.id}
+            className="mb-2 font-bold text-lg md:text-3xl px-10"
+          >
             <button
               onClick={() => setActiveComponent(item.id)}
-              className={`${activeComponent === item.id ? "text-CC3333" : ""}`}
+              className={`${
+                activeComponent === item.id ? "text-CC3333" : "text-gray-300"
+              }`}
             >
               {item.label}
             </button>

@@ -23,7 +23,8 @@ import {
   incrementQuantity,
 } from "../../redux/slices/cartSlice";
 import { RiDeleteBin6Fill } from "react-icons/ri";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation";
 
 const tagsOptions = [
   "Temaki",
@@ -60,6 +61,9 @@ const IndividualTable = () => {
       tags: string[];
     }[]
   >([]);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const checkTableExists = async () => {
@@ -119,17 +123,28 @@ const IndividualTable = () => {
         })
       );
       setQuantities((prev) => ({ ...prev, [product.id]: 1 })); // Reseta a quantidade após adicionar ao carrinho
+
+      // Exibe o modal de confirmação
+      setModalMessage(`${product.name} adicionado à sacola!`);
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+      }, 3000);
     }
   };
 
   const handlePlaceOrder = async () => {
     if (!tableDocId || cartItems.length === 0) return;
-  
+
+    setLoading(true);
+    setShowModal(false);
+
     try {
       const tableRef = doc(db, "tables", tableDocId);
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
-  
+
       // Cria um novo array de produtos que inclui os produtos do carrinho
       const newProducts = cartItems.map((item) => ({
         ...item,
@@ -137,17 +152,26 @@ const IndividualTable = () => {
         image: products.find((product) => product.id === item.id)?.image || "",
         orderNumber: generateOrderNumber(), // Gera um número único de pedido para cada produto
       }));
-  
+
       // Atualiza a lista de produtos, garantindo que os novos produtos sejam adicionados
       const mergedProducts = [...currentProducts, ...newProducts];
-  
+
       await updateDoc(tableRef, {
         products: mergedProducts, // Atualiza a lista de produtos com os novos e existentes
       });
-  
+
       dispatch(clearCart()); // Limpa o carrinho após o pedido ser feito
+
+      setModalMessage("Pedido realizado com sucesso!");
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+      }, 3000);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,7 +190,7 @@ const IndividualTable = () => {
 
   const formatPrice = (priceInCents: number) => {
     const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
-    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
+    return priceInReais.replace(".", ","); // Substitui o ponto por vírgula
   };
 
   const handleIncrement = (productId: string) => {
@@ -211,7 +235,11 @@ const IndividualTable = () => {
     );
 
   if (!tableExists) {
-    return <div className="text-center text-xl mt-10">Loading...</div>;
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+      </div>
+    );
   }
 
   return (
@@ -353,6 +381,8 @@ const IndividualTable = () => {
                   Nenhum produto encontrado
                 </p>
               )}
+              {/* Modal de confirmação */}
+              {showModal && <ModalConfirmation message={modalMessage} />}
             </div>
           ) : (
             Object.keys(groupedProducts).map((tag) => (
@@ -433,17 +463,22 @@ const IndividualTable = () => {
               </div>
             ))
           )}
+          {/* Modal de confirmação */}
+          {showModal && <ModalConfirmation message={modalMessage} />}
         </div>
       </div>
 
       {isModalOpen && (
         <div
           onClick={toggleModal}
-          className="fixed inset-0 flex justify-end bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 flex justify-end bg-black bg-opacity-50 z-40"
         >
+          <p className="z-50 ml-6 mt-2 bg-CC3333 h-7 w-7 text-center rounded-full font-bold text-white cursor-pointer">
+            x
+          </p>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white p-6 shadow-lg max-w-md w-full flex flex-col justify-between"
+            className="bg-white -ml-14 pt-12 p-6 shadow-lg max-w-md w-full flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-9">
@@ -512,9 +547,17 @@ const IndividualTable = () => {
               </p>
               <button
                 onClick={handlePlaceOrder}
-                className="font-medium text-white bg-CC3333 rounded-md text-sm px-5 py-3"
+                disabled={loading}
+                className={`font-medium text-white bg-CC3333 rounded-md text-sm px-5 py-3 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 Fazer Pedido
+                {loading && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+                  </div>
+                )}
               </button>
             </div>
           </div>

@@ -21,6 +21,7 @@ const PendingProducts = () => {
   const [isStartingOrder, setIsStartingOrder] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [deleteModalMessage, setDeleteModalMessage] = useState("");
 
   useEffect(() => {
     const fetchPendingProducts = async () => {
@@ -98,6 +99,7 @@ const PendingProducts = () => {
   };
 
   const handleDeleteOrder = async (tableId: string, orderNumber: string) => {
+    setLoading(true);
     try {
       const tableRef = doc(db, "tables", tableId);
       const tableDoc = await getDoc(tableRef);
@@ -115,9 +117,20 @@ const PendingProducts = () => {
         prevProducts.filter((item) => item.product.orderNumber !== orderNumber)
       );
 
+      // Exibe o modal de confirmação com a mensagem de exclusão
+      setDeleteModalMessage(`Pedido #${orderNumber} cancelado!`);
+      setShowModal(true); // Mostra o modal de confirmação
+
       console.log("Produto removido com sucesso!");
     } catch (error) {
       console.error("Erro ao remover o produto: ", error);
+    } finally {
+      setLoading(false);
+
+      setTimeout(() => {
+        setShowModal(false);
+        setDeleteModalMessage("");
+      }, 3000);
     }
   };
 
@@ -178,6 +191,11 @@ const PendingProducts = () => {
                       }
                       className="text-CC3333 h-5 w-5 cursor-pointer mr-5 sm:mr-0"
                     />
+                    {loading && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -193,7 +211,9 @@ const PendingProducts = () => {
         </div>
       )}
 
-      {showModal && <ModalConfirmation message={modalMessage} />}
+      {showModal && (
+        <ModalConfirmation message={modalMessage || deleteModalMessage} />
+      )}
     </div>
   );
 };

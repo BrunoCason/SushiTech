@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { collection, getDocs, query, where, DocumentData, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  DocumentData,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "../../Services/firebaseConfig";
 import PageTitle from "../PageTitle";
 import { RiDeleteBin6Fill } from "react-icons/ri";
+import { FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation";
 
 const MyOrders = () => {
   const { id } = useParams<{ id: string }>();
   const [orders, setOrders] = useState<DocumentData[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -28,25 +42,27 @@ const MyOrders = () => {
         }
       } catch (error) {
         console.error("Error fetching orders: ", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOrders();
   }, [id]);
 
-  // Função para cancelar o pedido
   const handleCancelOrder = (index: number) => {
-    setOrderToCancel(index); // Armazena o índice do pedido que será cancelado
+    setOrderToCancel(index);
     setShowModal(true);
   };
 
   const confirmCancelOrder = async () => {
     if (orderToCancel !== null) {
+      setLoading(true);
+
       try {
-        const updatedOrders = orders.filter((_, i) => i !== orderToCancel); // Remove o pedido pelo índice
+        const updatedOrders = orders.filter((_, i) => i !== orderToCancel);
         setOrders(updatedOrders);
 
-        // Atualiza o Firestore com a nova lista de pedidos
         const tablesCollectionRef = collection(db, "tables");
         const q = query(tablesCollectionRef, where("number", "==", id));
         const querySnapshot = await getDocs(q);
@@ -54,30 +70,39 @@ const MyOrders = () => {
         if (!querySnapshot.empty) {
           const tableDoc = querySnapshot.docs[0];
           const tableDocRef = doc(db, "tables", tableDoc.id);
-
-          // Atualizando os produtos (pedidos) no Firestore
           await updateDoc(tableDocRef, { products: updatedOrders });
         }
+
+        setLoading(false);
+
+        setShowModal(false);
+        setConfirmationMessage("Pedido cancelado com sucesso!");
+
+        // Fecha o modal de confirmação após 3 segundos
+        setTimeout(() => {
+          setConfirmationMessage(null);
+        }, 3000);
       } catch (error) {
-        console.error("Error cancelling order: ", error);
+        console.error(error);
+        setLoading(false);
       }
+    } else {
+      setShowModal(false);
     }
-    setShowModal(false);
   };
 
   const cancelCancelOrder = () => {
     setShowModal(false);
   };
 
-  // Calcula o total dos pedidos
   const totalPrice = orders.reduce(
     (acc, order) => acc + order.price * order.quantity,
     0
   );
 
   const formatPrice = (priceInCents: number) => {
-    const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
-    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
+    const priceInReais = (priceInCents / 100).toFixed(2);
+    return priceInReais.replace(".", ",");
   };
 
   return (
@@ -92,10 +117,10 @@ const MyOrders = () => {
           Retornar
         </button>
       </Link>
-      <div className="flex">
-        <div className="w-9/12 mr-8">
-          <div className="bg-CC3333 text-base text-white font-medium py-4 mb-10 rounded-md">
-            <div className="grid grid-cols-5 text-center ml-24 mr-5">
+      <div className="flex items-center flex-col lg:flex-row lg:items-start">
+        <div className="lg:w-9/12 lg:mr-8">
+          <div className="bg-CC3333 text-xs sm:text-base text-white font-medium py-4 mb-10 rounded-md">
+            <div className="grid grid-cols-5 text-center lg:ml-24 lg:mr-5">
               <p>Item</p>
               <p>Preço</p>
               <p>Quantidade</p>
@@ -103,23 +128,27 @@ const MyOrders = () => {
               <p>Status</p>
             </div>
           </div>
-          {orders.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+            </div>
+          ) : orders.length > 0 ? (
             <ul className="space-y-4">
               {orders.map((order, index) => (
                 <li key={index} className="flex items-center rounded-lg">
                   <img
                     src={order.image}
                     alt={order.name}
-                    className="w-24 h-20 object-cover rounded-md"
+                    className="w-24 h-20 object-cover rounded-md hidden lg:block"
                   />
-                  <div className="grid grid-cols-5 text-center w-full text-E6E6E">
+                  <div className="grid grid-cols-5 text-xs sm:text-base text-center w-full text-E6E6E">
                     <p>{order.name}</p>
                     <p>{formatPrice(order.price)}</p>
                     <p>{order.quantity}</p>
                     <p>{formatPrice(order.price * order.quantity)}</p>
                     <p>{order.status}</p>
                   </div>
-                  <div className="flex justify-center items-center">
+                  <div className="flex justify-center items-center -mr-10 lg:-mr-0">
                     {order.status === "pendente" ? (
                       <RiDeleteBin6Fill
                         className="cursor-pointer text-CC3333 h-5 w-5"
@@ -139,13 +168,15 @@ const MyOrders = () => {
           )}
         </div>
 
-        <div className="bg-CC3333 rounded-md text-white py-4 px-6 w-72 h-full flex flex-col justify-between">
+        <div className="bg-CC3333 rounded-md mt-10 lg:mt-0 text-white py-4 px-6 w-72 h-full flex flex-col justify-between">
           <div>
-            <p className="font-medium text-3xl text-center mb-5">Total</p>
+            <p className="font-medium text-xl sm:text-3xl text-center mb-5">
+              Total
+            </p>
             <div className="font-medium text-base flex justify-between mb-11">
-              <p>Sub Total</p>
+              <p className="text-sm sm:text-base">Sub Total</p>
               {orders.length > 0 ? (
-                <ul className="space-y-1">
+                <ul className="space-y-1 text-sm sm:text-base">
                   {orders.map((order, index) => (
                     <li key={index}>
                       <p>{formatPrice(order.price * order.quantity)}</p>
@@ -191,13 +222,24 @@ const MyOrders = () => {
               </button>
               <button
                 onClick={confirmCancelOrder}
-                className="bg-CC3333 text-white py-2 px-6 rounded hover:bg-red-600"
+                className="bg-CC3333 text-white py-2 px-6 rounded"
+                disabled={loading}
               >
                 Confirmar
+                {loading && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <FaSpinner className="animate-spin text-CC3333 h-7 w-7" />
+                  </div>
+                )}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Confirmação de Sucesso */}
+      {confirmationMessage && (
+        <ModalConfirmation message={confirmationMessage} />
       )}
     </div>
   );
