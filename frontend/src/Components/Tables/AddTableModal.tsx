@@ -32,16 +32,16 @@ const AddTableModal: React.FC<{
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white py-9 rounded-lg shadow-lg relative max-w-md w-full font-inter text-base mx-5">
-        <div className="flex justify-center items-center">
-          <p className="font-medium mr-5">Insira o número da mesa</p>
+        <div className="flex justify-center items-center mb-8">
+          <p className="font-medium ml-5 sm:ml-0 mr-5">Insira o número da mesa</p>
           <input
             type="number"
             placeholder="Nº"
             value={newTableNumber}
             onChange={(e) => setNewTableNumber(e.target.value)}
             className={`border ${
-              errorMessage ? "border-red-500" : "border-ADABAC mb-8"
-            } w-28 h-14 rounded-md focus:outline-none text-center font-medium`}
+              errorMessage ? "border-red-500" : "border-ADABAC"
+                } w-28 h-14 rounded-md focus:outline-none text-center font-medium mr-5 sm:m5-0`}
           />
         </div>
         {errorMessage && (

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { db } from "../../Services/firebaseConfig";
 import { auth } from "../../firebaseAuth";
 import PageTitle from "../PageTitle";
@@ -30,50 +29,61 @@ const TablesAvailable = () => {
   const occupiedTableImage =
     "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
 
-    const handleAddTable = async (tableNumber: string) => {
-      if (tableNumber) {
-        try {
-          // Verifica se a mesa já existe
-          const existingTables = await getDocs(collection(db, "tables"));
-          const tableExists = existingTables.docs.some(doc => doc.data().number === tableNumber);
-    
-          if (tableExists) {
-            alert(`A mesa número ${tableNumber} já existe!`);
-            return; // Para a execução se a mesa já existir
-          }
-    
-          const email = `table${tableNumber}@restaurant.com`;
-          const password = `password${tableNumber}`;
-    
-          const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
-          const userId = userCredential.user.uid;
-    
-          await addDoc(collection(db, "tables"), {
-            number: tableNumber,
-            products: [],
-            userId: userId,
-          });
-    
-          fetchTables();
-        } catch (error) {
-          console.error("Error adding table: ", error);
+  const handleAddTable = async (tableNumber: string) => {
+    if (tableNumber) {
+      try {
+        // Verifica se a mesa já existe
+        const existingTables = await getDocs(collection(db, "tables"));
+        const tableExists = existingTables.docs.some(
+          (doc) => doc.data().number === tableNumber
+        );
+
+        if (tableExists) {
+          alert(`A mesa número ${tableNumber} já existe!`);
+          return; // Para a execução se a mesa já existir
         }
+
+        // Faz uma requisição ao backend para criar o usuário da mesa
+        const response = await fetch(
+          "http://localhost:3000/api/users/create-table-user",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tableNumber }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Erro ao criar o usuário da mesa");
+        }
+
+        const { userId } = await response.json(); // Obtém o userId retornado pelo backend
+
+        // Adiciona a mesa ao Firestore com o userId retornado
+        await addDoc(collection(db, "tables"), {
+          number: tableNumber,
+          products: [],
+          userId: userId,
+        });
+
+        // Atualiza a lista de mesas
+        fetchTables();
+      } catch (error) {
+        console.error(error);
       }
-    };
-    
-    const fetchTables = async () => {
-      const querySnapshot = await getDocs(collection(db, "tables"));
-      const tablesList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Table[];
-      setTables(tablesList);
-    };
-    
+    }
+  };
+
+  const fetchTables = async () => {
+    const querySnapshot = await getDocs(collection(db, "tables"));
+    const tablesList = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Table[];
+    setTables(tablesList);
+  };
 
   useEffect(() => {
     fetchTables();

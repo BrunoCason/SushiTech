@@ -37,3 +37,30 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ error: 'Erro ao excluir usuário.' });
   }
 };
+
+// Função para criar um usuário para a mesa
+export const createTableUser = async (req: Request, res: Response): Promise<void> => {
+  const { tableNumber } = req.body;
+
+  if (!tableNumber) {
+    res.status(400).send('O número da mesa é necessário.');
+    return;
+  }
+
+  const email = `table${tableNumber}@restaurant.com`;
+  const password = `password${tableNumber}`;
+
+  try {
+    // Cria o usuário
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+    });
+
+    // Retorna o ID do usuário criado
+    res.status(201).json({ userId: userRecord.uid });
+  } catch (error) {
+    console.error('Erro ao criar usuário da mesa:', error);
+    res.status(500).send('Erro ao criar usuário da mesa.');
+  }
+};

@@ -26,7 +26,6 @@ const PrivateRoute = () => {
   const isTableUser = user.email?.startsWith("table");
   if (isTableUser) {
     const tableNumber = user.email?.split("@")[0].replace("table", "");
-    console.log(tableNumber);
 
     // Verifica se o usuário está tentando acessar uma rota que não é a sua própria mesa
     if (!tableNumber || tableNumber !== id) {
