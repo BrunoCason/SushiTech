@@ -7,8 +7,7 @@ import DeleteProductButton from "./DeleteProductButton";
 import EditProductForm from "./EditProductForm";
 import { MdEdit } from "react-icons/md";
 import { IoMdAdd, IoMdImage } from "react-icons/io";
-import { FaSearch } from "react-icons/fa";
-import MaskedInput from "react-text-mask";
+import { FaSearch, FaSpinner } from "react-icons/fa";
 
 const tagsOptions = [
   "Temaki",
@@ -26,7 +25,7 @@ const tagsOptions = [
 
 const AddProducts = () => {
   const [productName, setProductName] = useState<string>("");
-  const [productPrice, setProductPrice] = useState<string>("")
+  const [productPrice, setProductPrice] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
@@ -50,51 +49,44 @@ const AddProducts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [tagInput, setTagInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handlePriceChange = (value: string) => {
-    // Remove caracteres não numéricos, exceto a vírgula
-    const numericValue = value.replace(/[^\d]/g, '');
-  
-    // Lógica para formatar o preço
-    if (numericValue.length === 0) {
-      setProductPrice("0,00"); // Se não houver entrada, exibe 0,00
-    } else if (numericValue.length < 3) {
-      // Se menos de 3 dígitos, formate para 0,0X
-      setProductPrice(`0,0${numericValue.padStart(1, '0')}`); // Garante pelo menos 1 dígito
-    } else {
-      // Formata como R$ 0,00
-      const reais = numericValue.slice(0, -2) || "0"; // Os últimos 2 são os centavos
-      const centavos = numericValue.slice(-2).padStart(2, '0'); // Garante que tenha 2 dígitos
-      setProductPrice(`${reais},${centavos}`);
-    }
-  };
-  
-  // Função para adicionar o produto
   const handleAddProduct = async () => {
-    const priceInCents = parseFloat(productPrice.replace(',', '.')) * 100; // Converter para centavos
+    // Converte o valor formatado de reais para centavos
+    const priceInCents =
+      parseFloat(productPrice.replace("R$", "").replace(",", ".").trim()) * 100;
+
     if (productName && productDescription && priceInCents > 0 && productImage) {
+      setLoading(true);
+
       try {
         const imageRef = ref(storage, `products/${productImage.name}`);
         const snapshot = await uploadBytes(imageRef, productImage);
         const imageUrl = await getDownloadURL(snapshot.ref);
-  
+
+        // Adiciona o produto ao Firestore
         await addDoc(collection(db, "products"), {
           name: productName,
           description: productDescription,
-          price: priceInCents, // Armazenar em centavos
+          price: priceInCents,
           image: imageUrl,
           tags: productTags,
         });
+
         console.log("Product added successfully!");
         setProductName("");
         setProductDescription("");
-        setProductPrice(""); // Limpar o campo de preço
+        setProductPrice("");
         setProductImage(null);
+        setTagInput("");
         setProductTags([]);
         fetchProducts();
         setIsModalOpen(false);
       } catch (error) {
         console.error("Error adding product: ", error);
+      } finally {
+        setLoading(false);
       }
     } else {
       console.log("Please enter product name, price and upload an image.");
@@ -103,7 +95,27 @@ const AddProducts = () => {
 
   const formatPrice = (priceInCents: number) => {
     const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
-    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
+    return priceInReais.replace(".", ","); // Substitui o ponto por vírgula
+  };
+
+  const mascaraMoeda = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onlyDigits = event.target.value
+      .split("")
+      .filter((s) => /\d/.test(s))
+      .join("")
+      .padStart(3, "0"); // Garante ao menos 3 dígitos
+
+    const digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2); // Formata como valor decimal
+
+    // Atualiza o valor formatado no input e no estado
+    setProductPrice(maskCurrency(parseFloat(digitsFloat)));
+  };
+
+  const maskCurrency = (valor: number, locale = "pt-BR", currency = "BRL") => {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(valor); // Formata no estilo de moeda (R$ 0,00)
   };
 
   const fetchProducts = async () => {
@@ -126,13 +138,27 @@ const AddProducts = () => {
     fetchProducts();
   }, []);
 
-  const handleTagSelect = (tag: string) => {
-    setProductTags((prevTags) =>
-      prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag)
-        : [...prevTags, tag]
-    );
+  const handleTagEditSelect = (tag: string) => {
+    if (!productTags.includes(tag)) {
+      // Adiciona a tag se não estiver presente
+      setProductTags((prevTags) => [...prevTags, tag]);
+    } else {
+      // Remove a tag se já estiver presente
+      setProductTags((prevTags) => prevTags.filter((t) => t !== tag));
+    }
+    setTagInput(tag); // Atualiza o input com a tag selecionada
+    setShowTagsMenu(false); // Fecha o menu
   };
+
+  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTagInput(e.target.value);
+    // Exibe o menu apenas se houver texto no input
+    setShowTagsMenu(e.target.value.length > 0);
+  };
+
+  const filteredTags = tagsOptions.filter((tag) =>
+    tag.toLowerCase().includes(tagInput.toLowerCase())
+  );
 
   // Agrupar produtos por tags
   const groupedProducts = products.reduce((acc, product) => {
@@ -198,7 +224,7 @@ const AddProducts = () => {
             className="text-sm font-normal text-A7A7A7 focus:outline-none pl-14 lg:pl-3"
             placeholder="Busque por item"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)} 
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <button
@@ -234,7 +260,7 @@ const AddProducts = () => {
                           </p>
                           <div className="flex justify-between">
                             <p className="font-bold text-sm">
-                              R$ {product.price}
+                              R$ {formatPrice(product.price)}
                             </p>
                             <div className="space-x-4">
                               <button
@@ -344,7 +370,7 @@ const AddProducts = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex">
-              <div className="mr-10">
+              <div className="mr-4 md:mr-10">
                 <input
                   id="fileInput"
                   type="file"
@@ -352,16 +378,16 @@ const AddProducts = () => {
                   onChange={(e) =>
                     setProductImage(e.target.files ? e.target.files[0] : null)
                   }
-                  className="hidden "
+                  className="hidden"
                 />
                 <label
                   htmlFor="fileInput"
-                  className="flex flex-col justify-center items-center w-64 h-96 bg-gray-300 rounded-md cursor-pointer"
+                  className="flex flex-col justify-center items-center w-24 sm:w-48 h-96 bg-gray-300 rounded-md cursor-pointer"
                 >
-                  <IoMdImage className="w-60 h-60 text-gray-600" />
+                  <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
                 </label>
               </div>
-              <div className="w-72">
+              <div className="sm:w-72 flex flex-col justify-center">
                 <p className="font-medium text-xl mb-4">Adicionar Produto</p>
                 <p className="font-medium text-lg">Nome</p>
                 <input
@@ -369,7 +395,7 @@ const AddProducts = () => {
                   placeholder="Nome do produto"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
+                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
                 />
                 <p className="font-medium text-lg mt-4">Descrição</p>
                 <input
@@ -377,32 +403,32 @@ const AddProducts = () => {
                   placeholder="Descrição do produto"
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
+                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
                 />
                 <p className="font-medium text-lg mt-4">Preço</p>
-                <MaskedInput
-  mask={[/\d/, ',', /\d/, /\d/]} // 3 dígitos seguidos de 2 dígitos após a vírgula
-  value={productPrice}
-  onChange={(e) => handlePriceChange(e.target.value)}
-  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal w-full"
-/>
+                <input
+                  type="text"
+                  onChange={mascaraMoeda}
+                  value={productPrice}
+                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
+                  placeholder="R$ 0,00"
+                />
                 <div className="flex justify-between mt-3">
-                  <div className="my-4 flex">
-                    <p className="font-medium text-lg mb-5">Categoria</p>
-                    <button
-                      onClick={() => setShowTagsMenu(!showTagsMenu)}
-                      className="border border-black rounded-md w-24 h-9 ml-3"
-                    >
-                      {productTags.length
-                        ? productTags.join(", ")
-                        : "Selecione"}
-                    </button>
-                    {showTagsMenu && (
+                  <div className="mb-4">
+                    <p className="font-medium text-lg">Categoria</p>
+                    <input
+                      type="text"
+                      placeholder="Insira a categoria"
+                      value={tagInput}
+                      onChange={handleTagInputChange}
+                      className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-72"
+                    />
+                    {showTagsMenu && tagInput && (
                       <div className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-48">
-                        {tagsOptions.map((tag) => (
+                        {filteredTags.map((tag) => (
                           <button
                             key={tag}
-                            onClick={() => handleTagSelect(tag)}
+                            onClick={() => handleTagEditSelect(tag)}
                             className={`block px-4 py-2 text-left hover:bg-gray-200 w-full ${
                               productTags.includes(tag) ? "bg-gray-100" : ""
                             }`}
@@ -427,6 +453,11 @@ const AddProducts = () => {
                     className="bg-CC3333 rounded-md text-white font-bold w-24 h-9"
                   >
                     Salvar
+                    {loading && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+                  </div>
+                )}
                   </button>
                 </div>
               </div>

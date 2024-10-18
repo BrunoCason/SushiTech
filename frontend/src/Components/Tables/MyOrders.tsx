@@ -75,6 +75,11 @@ const MyOrders = () => {
     0
   );
 
+  const formatPrice = (priceInCents: number) => {
+    const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
+    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
+  };
+
   return (
     <div className="p-6 font-inter container mx-auto min-h-screen">
       <PageTitle title={`Meus Pedidos - Mesa ${id}`} />
@@ -109,9 +114,9 @@ const MyOrders = () => {
                   />
                   <div className="grid grid-cols-5 text-center w-full text-E6E6E">
                     <p>{order.name}</p>
-                    <p>{order.price}</p>
+                    <p>{formatPrice(order.price)}</p>
                     <p>{order.quantity}</p>
-                    <p>{(order.price * order.quantity).toFixed(2)}</p>
+                    <p>{formatPrice(order.price * order.quantity)}</p>
                     <p>{order.status}</p>
                   </div>
                   <div className="flex justify-center items-center">
@@ -143,7 +148,7 @@ const MyOrders = () => {
                 <ul className="space-y-1">
                   {orders.map((order, index) => (
                     <li key={index}>
-                      <p>{(order.price * order.quantity).toFixed(2)}</p>
+                      <p>{formatPrice(order.price * order.quantity)}</p>
                     </li>
                   ))}
                 </ul>
@@ -154,7 +159,7 @@ const MyOrders = () => {
           </div>
           <div className="flex justify-between items-center">
             <p className="font-medium text-base">Total</p>
-            <p className="font-bold text-xl">{totalPrice.toFixed(2)}</p>
+            <p className="font-bold text-xl">{formatPrice(totalPrice)}</p>
           </div>
           <div className="flex justify-center mt-4 mb-2">
             <button className="rounded-md bg-white text-black font-semibold text-sm py-2 px-5">

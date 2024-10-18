@@ -164,6 +164,11 @@ const IndividualTable = () => {
     0
   );
 
+  const formatPrice = (priceInCents: number) => {
+    const priceInReais = (priceInCents / 100).toFixed(2); // Converte para reais e formata com 2 casas decimais
+    return priceInReais.replace('.', ','); // Substitui o ponto por vírgula
+  };
+
   const handleIncrement = (productId: string) => {
     setQuantities((prev) => ({
       ...prev,
@@ -291,7 +296,7 @@ const IndividualTable = () => {
                           </p>
                           <div className="flex flex-col sm:flex-row justify-between">
                             <p className="font-bold text-sm">
-                              R$ {product.price}
+                              R$ {formatPrice(product.price)}
                             </p>
                             <div className="flex space-x-2 mt-2 sm:mt-0">
                               <div className="flex justify-around items-center border border-E6E6E rounded-md font-bold text-E6E6E text-xs px-1 h-5 sm:h-7 sm:w-14">
@@ -370,7 +375,7 @@ const IndividualTable = () => {
                             </p>
                             <div className="flex flex-col sm:flex-row justify-between">
                               <p className="font-bold text-sm">
-                                R$ {product.price}
+                                R$ {formatPrice(product.price)}
                               </p>
                               <div className="flex space-x-2 mt-2 sm:mt-0">
                                 <div className="flex justify-around items-center border border-E6E6E rounded-md font-bold text-E6E6E text-xs px-1 h-5 sm:h-7 sm:w-14">
@@ -468,7 +473,7 @@ const IndividualTable = () => {
                             {product.name}
                           </p>
                           <p className="text-base font-medium">
-                            R$ {(product.price * product.quantity).toFixed(2)}
+                            R$ {formatPrice(product.price * product.quantity)}
                           </p>
                         </div>
                       </div>
@@ -502,7 +507,7 @@ const IndividualTable = () => {
               <p className="text-base font-medium text-E6E6E">
                 Total{" "}
                 <span className="text-lg font-medium text-black ml-3">
-                  R$ {totalPrice.toFixed(2)}
+                  R$ {formatPrice(totalPrice)}
                 </span>
               </p>
               <button
