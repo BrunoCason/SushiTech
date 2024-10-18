@@ -11,6 +11,7 @@ export interface DeleteButtonTableProps {
   tableId: string;
   email: string;
   onTableDeleted: () => void;
+  onFetchTables: () => void;
 }
 
 export interface EditTableFormProps {

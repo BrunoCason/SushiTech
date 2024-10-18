@@ -1,9 +1,14 @@
 import React, { useState } from "react";
-import { updateDoc, doc, getFirestore } from "firebase/firestore";
+import {
+  updateDoc,
+  doc,
+  getDocs,
+  collection,
+  getFirestore,
+} from "firebase/firestore";
 import { EditTableFormProps } from "../../Types";
 import { FaSpinner } from "react-icons/fa";
-import ModalConfirmation from "../ModalConfirmation"; // Import do Modal
-
+import ModalConfirmation from "../ModalConfirmation";
 const EditTableForm: React.FC<EditTableFormProps> = ({
   tableId,
   currentNumber,
@@ -13,8 +18,8 @@ const EditTableForm: React.FC<EditTableFormProps> = ({
   const [newNumber, setNewNumber] = useState<string>(currentNumber);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState<boolean>(false); // Estado para o modal de confirmação
-  const [showEditModal, setShowEditModal] = useState<boolean>(true); // Estado para controlar a exibição do modal de edição
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(true);
   const db = getFirestore();
 
   const handleUpdateTable = async () => {
@@ -22,6 +27,17 @@ const EditTableForm: React.FC<EditTableFormProps> = ({
     setError(null);
 
     try {
+      // Verifica se a nova mesa já existe
+      const existingTables = await getDocs(collection(db, "tables"));
+      const tableExists = existingTables.docs.some(
+        (doc) => doc.data().number === newNumber && doc.id !== tableId
+      );
+
+      if (tableExists) {
+        setError(`A mesa número ${newNumber} já existe!`);
+        return; // Não continua se a mesa já existir
+      }
+
       const tableRef = doc(db, "tables", tableId);
       await updateDoc(tableRef, {
         number: newNumber,
@@ -31,13 +47,13 @@ const EditTableForm: React.FC<EditTableFormProps> = ({
 
       // Exibe o loading por um breve momento antes de fechar o modal de edição
       setTimeout(() => {
-        setShowEditModal(false); // Fecha o modal de edição
-        setShowConfirmation(true); // Exibe o modal de confirmação
+        setShowEditModal(false);
+        setShowConfirmation(true);
         setTimeout(() => {
-          setShowConfirmation(false); // Oculta o modal de confirmação após alguns segundos
-          onClose(); // Fecha o modal de edição (opcional)
+          setShowConfirmation(false);
+          onClose();
         }, 3000);
-      }, 1000); // 1 segundo de loading
+      }, 1000);
     } catch (error) {
       setError("Erro ao atualizar a mesa.");
       console.error("Erro ao atualizar a mesa:", error);
@@ -60,10 +76,12 @@ const EditTableForm: React.FC<EditTableFormProps> = ({
                 placeholder="Nº"
                 value={newNumber}
                 onChange={(e) => setNewNumber(e.target.value)}
-                className="border border-ADABAC w-28 h-14 rounded-md focus:outline-none text-center font-medium mr-5 sm:m5-0"
+                className={`border ${
+                  error ? "border-red-500" : "border-ADABAC"
+                } w-28 h-14 rounded-md focus:outline-none text-center font-medium mr-5 sm:m5-0`}
               />
-              {error && <p className="text-red-500">{error}</p>}
             </div>
+            {error && <p className="text-red-500 text-center mb-8">{error}</p>}
             <div className="flex justify-center items-center">
               <button
                 onClick={onClose}

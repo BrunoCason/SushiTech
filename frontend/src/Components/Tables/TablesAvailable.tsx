@@ -13,6 +13,7 @@ import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
 import AddTableModal from "./AddTableModal";
 import { FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation";
 
 const TablesAvailable = () => {
   const [tables, setTables] = useState<Table[]>([]);
@@ -21,46 +22,58 @@ const TablesAvailable = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
 
   const freeTableImage =
     "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-black.png?alt=media&token=abe85ef6-5025-40cb-9b1e-596e60a1ec20";
   const occupiedTableImage =
     "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
 
-  const handleAddTable = async (tableNumber: string) => {
-    if (tableNumber) {
-      try {
-        const email = `table${tableNumber}@restaurant.com`;
-        const password = `password${tableNumber}`;
-
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-        const userId = userCredential.user.uid;
-
-        await addDoc(collection(db, "tables"), {
-          number: tableNumber,
-          products: [],
-          userId: userId,
-        });
-
-        fetchTables();
-      } catch (error) {
-        console.error("Error adding table: ", error);
+    const handleAddTable = async (tableNumber: string) => {
+      if (tableNumber) {
+        try {
+          // Verifica se a mesa já existe
+          const existingTables = await getDocs(collection(db, "tables"));
+          const tableExists = existingTables.docs.some(doc => doc.data().number === tableNumber);
+    
+          if (tableExists) {
+            alert(`A mesa número ${tableNumber} já existe!`);
+            return; // Para a execução se a mesa já existir
+          }
+    
+          const email = `table${tableNumber}@restaurant.com`;
+          const password = `password${tableNumber}`;
+    
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const userId = userCredential.user.uid;
+    
+          await addDoc(collection(db, "tables"), {
+            number: tableNumber,
+            products: [],
+            userId: userId,
+          });
+    
+          fetchTables();
+        } catch (error) {
+          console.error("Error adding table: ", error);
+        }
       }
-    }
-  };
-
-  const fetchTables = async () => {
-    const querySnapshot = await getDocs(collection(db, "tables"));
-    const tablesList = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Table[];
-    setTables(tablesList);
-  };
+    };
+    
+    const fetchTables = async () => {
+      const querySnapshot = await getDocs(collection(db, "tables"));
+      const tablesList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Table[];
+      setTables(tablesList);
+    };
+    
 
   useEffect(() => {
     fetchTables();
@@ -82,6 +95,15 @@ const TablesAvailable = () => {
     checkUserRole();
   }, []);
 
+  const handleTableDeleted = (message: string) => {
+    setConfirmationMessage(message);
+    setShowConfirmation(true);
+
+    setTimeout(() => {
+      setShowConfirmation(false);
+    }, 3000);
+  };
+
   return (
     <div className="mt-20 container mx-auto font-inter">
       <PageTitle title="Mesas" />
@@ -98,7 +120,6 @@ const TablesAvailable = () => {
         </h2>
       </div>
 
-      {/* Modal de adicionar mesa */}
       {isModalOpen && (
         <AddTableModal
           onClose={() => setIsModalOpen(false)}
@@ -106,7 +127,6 @@ const TablesAvailable = () => {
         />
       )}
 
-      {/* Conteúdo existente */}
       <div className="mb-7">
         {editTableId && (
           <EditTableForm
@@ -170,7 +190,12 @@ const TablesAvailable = () => {
                           <DeleteButtonTable
                             tableId={table.id}
                             email={`table${table.number}@restaurant.com`}
-                            onTableDeleted={fetchTables}
+                            onTableDeleted={() =>
+                              handleTableDeleted(
+                                `Mesa ${table.number} excluída com sucesso!`
+                              )
+                            }
+                            onFetchTables={fetchTables}
                           />
                         </div>
                       )}
@@ -181,6 +206,9 @@ const TablesAvailable = () => {
           )}
         </ul>
       </div>
+
+      {/* Modal de confirmação */}
+      {showConfirmation && <ModalConfirmation message={confirmationMessage} />}
     </div>
   );
 };

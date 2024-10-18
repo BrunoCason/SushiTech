@@ -9,7 +9,6 @@ import {
 import { db, storage } from "../../Services/firebaseConfig";
 import { EditProductFormProps } from "../../Types";
 import { IoMdImage } from "react-icons/io";
-import { FaSpinner } from "react-icons/fa";
 
 const tagsOptions = [
   "Temaki",
@@ -46,16 +45,43 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   const [showTagsMenu, setShowTagsMenu] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isModified, setIsModified] = useState(false); // Estado para rastrear modificações
 
   useEffect(() => {
     // Atualiza o input com a tag selecionada quando o modal é aberto
     if (editProductTag) {
       setTagInput(editProductTag); // Exibe a tag selecionada no input
     }
-  }, [editProductTag]);
+
+    // Verifica se houve alguma modificação nos campos do produto
+    const hasChanges =
+      editProductName !== productName ||
+      editProductDescription !== productDescription ||
+      editProductPrice !== productPrice ||
+      (editProductTag ? [editProductTag] : []).toString() !==
+        productTags.toString() ||
+      editProductImage !== null;
+
+    setIsModified(hasChanges);
+  }, [
+    editProductName,
+    editProductDescription,
+    editProductPrice,
+    editProductTag,
+    productName,
+    productDescription,
+    productPrice,
+    productTags,
+    editProductImage,
+  ]);
 
   const handleEditProduct = async () => {
-    if (editProductName && editProductDescription && editProductPrice >= 0) {
+    if (
+      isModified &&
+      editProductName &&
+      editProductDescription &&
+      editProductPrice >= 0
+    ) {
       setLoading(true);
 
       try {
@@ -94,19 +120,18 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         setLoading(false);
       }
     } else {
-      console.log("Please enter product name, price.");
+      console.log("Nenhuma alteração foi feita.");
     }
   };
 
   const handleTagEditSelect = (tag: string) => {
     setEditProductTag(tag);
-    setTagInput(tag); 
+    setTagInput(tag);
     setShowTagsMenu(false);
   };
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
-    // Exibe o menu apenas se houver texto no input
     setShowTagsMenu(e.target.value.length > 0);
   };
 
@@ -114,20 +139,16 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
     tag.toLowerCase().includes(tagInput.toLowerCase())
   );
 
-  // Função para formatar o preço como moeda
   const mascaraMoeda = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/\D/g, ""); // Remove tudo que não é dígito
-    const onlyDigits = value.padStart(3, "0"); // Garante ao menos 3 dígitos
-    const digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2); // Formata como valor decimal
-
-    // Atualiza o valor formatado no input e no estado
-    setEditProductPrice(parseFloat(digitsFloat) * 100); // Salva como inteiro
+    const value = event.target.value.replace(/\D/g, "");
+    const onlyDigits = value.padStart(3, "0");
+    const digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2);
+    setEditProductPrice(parseFloat(digitsFloat) * 100);
   };
 
   const formatCurrency = (value: number) => {
-    // Formata o valor para exibir como moeda com vírgula
-    const valorString = (value / 100).toFixed(2); // Divide por 100 e fixa em 2 casas
-    return valorString.replace(".", ","); // Troca o ponto pela vírgula
+    const valorString = (value / 100).toFixed(2);
+    return valorString.replace(".", ",");
   };
 
   return (
@@ -213,14 +234,12 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               </button>
               <button
                 onClick={handleEditProduct}
-                className={`bg-CC3333 rounded-md text-white font-bold w-24 h-9`}
+                className={`${
+                  isModified ? "bg-CC3333" : "bg-ADABAC"
+                } rounded-md text-white font-bold w-24 h-9 flex items-center justify-center`}
+                disabled={!isModified || loading}
               >
                 Salvar
-                {loading && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
-                  </div>
-                )}
               </button>
             </div>
           </div>

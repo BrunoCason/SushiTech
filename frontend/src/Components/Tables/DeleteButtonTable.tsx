@@ -3,12 +3,13 @@ import { deleteDoc, doc, getFirestore } from "firebase/firestore";
 import { DeleteButtonTableProps } from "../../Types";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { FaSpinner } from "react-icons/fa";
-import ModalConfirmation from "../ModalConfirmation"; // Import do Modal
+import ModalConfirmation from "../ModalConfirmation";
 
 const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
   tableId,
   email,
   onTableDeleted,
+  onFetchTables,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,18 +42,20 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
         await deleteDoc(doc(db, "tables", tableId));
 
         onTableDeleted();
+        onFetchTables();
+
         setShowConfirm(false);
         setShowConfirmation(true);
 
         setTimeout(() => {
           setShowConfirmation(false);
-        }, 9000);
+        }, 3000);
       } else {
-        setError(responseData.error || "Erro ao excluir usuário.");
+        setError(responseData.error || "Erro ao excluir mesa.");
       }
     } catch (error) {
-      setError("Erro ao excluir usuário.");
-      console.error("Erro ao chamar o endpoint:", error);
+      setError("Erro ao excluir mesa.");
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -104,8 +107,9 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
         className="cursor-pointer w-5 h-5"
       />
 
-      {/* Modal de Confirmação */}
-      {showConfirmation && <ModalConfirmation message="Mesa excluída com sucesso!" />}
+      {showConfirmation && (
+        <ModalConfirmation message="Mesa excluída com sucesso!" />
+      )}
     </div>
   );
 };

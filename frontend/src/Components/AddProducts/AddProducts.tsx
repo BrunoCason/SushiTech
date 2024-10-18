@@ -8,6 +8,7 @@ import EditProductForm from "./EditProductForm";
 import { MdEdit } from "react-icons/md";
 import { IoMdAdd, IoMdImage } from "react-icons/io";
 import { FaSearch, FaSpinner } from "react-icons/fa";
+import ModalConfirmation from "../ModalConfirmation";
 
 const tagsOptions = [
   "Temaki",
@@ -51,45 +52,104 @@ const AddProducts = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [productNameInvalid, setProductNameInvalid] = useState(false);
+  const [productDescriptionInvalid, setProductDescriptionInvalid] =
+    useState(false);
+  const [productPriceInvalid, setProductPriceInvalid] = useState(false);
+  const [productImageInvalid, setProductImageInvalid] = useState(false);
+  const [productTagsInvalid, setProductTagsInvalid] = useState(false);
 
   const handleAddProduct = async () => {
-    // Converte o valor formatado de reais para centavos
+    // Converte o preço para centavos
     const priceInCents =
       parseFloat(productPrice.replace("R$", "").replace(",", ".").trim()) * 100;
 
-    if (productName && productDescription && priceInCents > 0 && productImage) {
-      setLoading(true);
+    // Reseta os estados de erro
+    setProductNameInvalid(false);
+    setProductDescriptionInvalid(false);
+    setProductPriceInvalid(false);
+    setProductImageInvalid(false);
+    setProductTagsInvalid(false);
 
-      try {
+    // Verifica se os campos obrigatórios estão preenchidos
+    let hasError = false;
+
+    if (!productName) {
+      setProductNameInvalid(true);
+      hasError = true;
+    }
+    if (!productDescription) {
+      setProductDescriptionInvalid(true);
+      hasError = true;
+    }
+    if (priceInCents <= 0 || isNaN(priceInCents)) {
+      setProductPriceInvalid(true);
+      hasError = true;
+    }
+    if (!productImage) {
+      setProductImageInvalid(true);
+      hasError = true;
+    }
+    if (productTags.length === 0) {
+      setProductTagsInvalid(true);
+      hasError = true;
+    }
+
+    if (hasError) {
+      return; // Interrompe a execução se houver erros
+    }
+
+    setLoading(true);
+
+    try {
+      let imageUrl = "";
+
+      if (productImage) {
+        // Realiza o upload da imagem
         const imageRef = ref(storage, `products/${productImage.name}`);
         const snapshot = await uploadBytes(imageRef, productImage);
-        const imageUrl = await getDownloadURL(snapshot.ref);
-
-        // Adiciona o produto ao Firestore
-        await addDoc(collection(db, "products"), {
-          name: productName,
-          description: productDescription,
-          price: priceInCents,
-          image: imageUrl,
-          tags: productTags,
-        });
-
-        console.log("Product added successfully!");
-        setProductName("");
-        setProductDescription("");
-        setProductPrice("");
-        setProductImage(null);
-        setTagInput("");
-        setProductTags([]);
-        fetchProducts();
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error("Error adding product: ", error);
-      } finally {
-        setLoading(false);
+        imageUrl = await getDownloadURL(snapshot.ref);
       }
-    } else {
-      console.log("Please enter product name, price and upload an image.");
+
+      // Adiciona o produto ao Firestore
+      await addDoc(collection(db, "products"), {
+        name: productName,
+        description: productDescription,
+        price: priceInCents,
+        image: imageUrl,
+        tags: productTags,
+      });
+
+      setModalMessage("Produto adicionado com sucesso!");
+      setIsModalVisible(true);
+
+      // Limpa os campos após o sucesso
+      setProductName("");
+      setProductDescription("");
+      setProductPrice("");
+      setProductImage(null);
+      setTagInput("");
+      setProductTags([]);
+      fetchProducts();
+
+      // Define um timeout para fechar o modal após 3 segundos
+      setTimeout(() => {
+        setIsModalVisible(false);
+      }, 3000);
+    } catch (error) {
+      console.error(error);
+      setModalMessage("Erro ao adicionar o produto.");
+      setIsModalVisible(true);
+
+      // Fecha o modal de erro após 3 segundos
+      setTimeout(() => {
+        setIsModalVisible(false);
+      }, 3000);
+    } finally {
+      setLoading(false);
+      setIsModalOpen(false);
     }
   };
 
@@ -119,6 +179,7 @@ const AddProducts = () => {
   };
 
   const fetchProducts = async () => {
+    setLoading(true);
     const querySnapshot = await getDocs(collection(db, "products"));
     const productsList = querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -132,6 +193,7 @@ const AddProducts = () => {
       tags: string[];
     }[];
     setProducts(productsList);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -238,7 +300,11 @@ const AddProducts = () => {
 
       <div className="flex justify-center">
         <div className="font-inter">
-          {selectedTags.length > 0 || searchTerm ? (
+          {loading ? (
+            <div className="flex justify-center mt-20 items-center h-20">
+              <FaSpinner className="animate-spin h-10 w-10 text-CC3333" />
+            </div>
+          ) : selectedTags.length > 0 || searchTerm ? (
             <div className="mb-10">
               <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">
                 {selectedTags.join(" / ")}
@@ -301,7 +367,7 @@ const AddProducts = () => {
                 </p>
               )}
             </div>
-          ) : (
+          ) : Object.keys(groupedProducts).length > 0 ? (
             Object.keys(groupedProducts).map((tag) => (
               <div key={tag} className="mb-10">
                 <h3 className="font-bold text-xl mb-4 mx-3 sm:mx-0">{tag}</h3>
@@ -362,6 +428,10 @@ const AddProducts = () => {
                 )}
               </div>
             ))
+          ) : (
+            <p className="text-E6E6E font-bold">
+              Nenhum produto foi adicionado
+            </p>
           )}
         </div>
       </div>
@@ -375,18 +445,25 @@ const AddProducts = () => {
                   id="fileInput"
                   type="file"
                   accept="image/*"
-                  onChange={(e) =>
-                    setProductImage(e.target.files ? e.target.files[0] : null)
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files ? e.target.files[0] : null;
+                    setProductImage(file);
+                    setProductImageInvalid(!file);
+                  }}
                   className="hidden"
                 />
                 <label
                   htmlFor="fileInput"
-                  className="flex flex-col justify-center items-center w-24 sm:w-48 h-96 bg-gray-300 rounded-md cursor-pointer"
+                  className={`flex flex-col justify-center items-center w-24 sm:w-48 h-96 rounded-md cursor-pointer ${
+                    productImageInvalid
+                      ? "border border-red-500 bg-gray-300"
+                      : "bg-gray-300"
+                  }`}
                 >
                   <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
                 </label>
               </div>
+
               <div className="sm:w-72 flex flex-col justify-center">
                 <p className="font-medium text-xl mb-4">Adicionar Produto</p>
                 <p className="font-medium text-lg">Nome</p>
@@ -395,7 +472,9 @@ const AddProducts = () => {
                   placeholder="Nome do produto"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
+                  className={`border-b  focus:outline-none text-BCBCBC text-base font-normal sm:w-full ${
+                    productNameInvalid ? "border-red-500" : "border-black"
+                  }`}
                 />
                 <p className="font-medium text-lg mt-4">Descrição</p>
                 <input
@@ -403,25 +482,33 @@ const AddProducts = () => {
                   placeholder="Descrição do produto"
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
+                  className={`border-b focus:outline-none text-BCBCBC text-base font-normal sm:w-full ${
+                    productDescriptionInvalid
+                      ? "border-red-500"
+                      : "border-black"
+                  }`}
                 />
                 <p className="font-medium text-lg mt-4">Preço</p>
                 <input
                   type="text"
                   onChange={mascaraMoeda}
                   value={productPrice}
-                  className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-full"
+                  className={`border-b  focus:outline-none text-BCBCBC text-base font-normal sm:w-full ${
+                    productPriceInvalid ? "border-red-500" : "border-black"
+                  }`}
                   placeholder="R$ 0,00"
                 />
                 <div className="flex justify-between mt-3">
-                  <div className="mb-4">
+                  <div className="mb-4 relative">
                     <p className="font-medium text-lg">Categoria</p>
                     <input
                       type="text"
                       placeholder="Insira a categoria"
                       value={tagInput}
                       onChange={handleTagInputChange}
-                      className="border-b border-black focus:outline-none text-BCBCBC text-base font-normal sm:w-72"
+                      className={`border-b focus:outline-none text-BCBCBC text-base font-normal sm:w-72 ${
+                        productTagsInvalid ? "border-red-500" : "border-black"
+                      }`}
                     />
                     {showTagsMenu && tagInput && (
                       <div className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-48">
@@ -440,6 +527,7 @@ const AddProducts = () => {
                     )}
                   </div>
                 </div>
+
                 <div className="flex justify-between mt-3">
                   <button
                     onClick={() => setIsModalOpen(false)}
@@ -454,10 +542,10 @@ const AddProducts = () => {
                   >
                     Salvar
                     {loading && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
-                  </div>
-                )}
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
+                      </div>
+                    )}
                   </button>
                 </div>
               </div>
@@ -465,6 +553,8 @@ const AddProducts = () => {
           </div>
         </div>
       )}
+
+      {isModalVisible && <ModalConfirmation message={modalMessage} />}
 
       {editProductId && (
         <EditProductForm
@@ -480,10 +570,17 @@ const AddProducts = () => {
             setEditProductPrice(0);
             setEditProductTags([]);
             fetchProducts();
+
+            // Exibir a mensagem de confirmação
+            setModalMessage("Produto editado com sucesso!");
+            setIsModalVisible(true);
+            setTimeout(() => setIsModalVisible(false), 3000);
           }}
           onCancel={() => setEditProductId(null)}
         />
       )}
+
+      {isModalVisible && <ModalConfirmation message={modalMessage} />}
     </div>
   );
 };
