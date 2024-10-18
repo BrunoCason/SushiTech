@@ -70,6 +70,14 @@ const TablesAvailable = () => {
 
         // Atualiza a lista de mesas
         fetchTables();
+
+        // Exibe o modal de confirmação após adicionar a mesa
+        setConfirmationMessage(`Mesa ${tableNumber} criada com sucesso!`);
+        setShowConfirmation(true);
+
+        setTimeout(() => {
+          setShowConfirmation(false);
+        }, 3000);
       } catch (error) {
         console.error(error);
       }
@@ -199,7 +207,7 @@ const TablesAvailable = () => {
                           />
                           <DeleteButtonTable
                             tableId={table.id}
-                            email={`table${table.number}@restaurant.com`}
+                            email={`mesa${table.number}@sushitech.com`}
                             onTableDeleted={() =>
                               handleTableDeleted(
                                 `Mesa ${table.number} excluída com sucesso!`

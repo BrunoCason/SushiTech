@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ChangePasswordForm from "./ChangePasswordForm";
 import DeleteUserConfirmation from "./DeleteUserConfirmation";
 import { fetchUsers } from "../../Services/userService";
@@ -8,7 +8,7 @@ import { MdEdit } from "react-icons/md";
 import ModalConfirmation from "../ModalConfirmation";
 import { FaSpinner } from "react-icons/fa";
 
-const UserListOverlay: React.FC<UserListOverlayProps> = () => {
+const UserListOverlay = ({ currentUserEmail }: UserListOverlayProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [deleteUserEmail, setDeleteUserEmail] = useState<string | null>(null);
@@ -19,7 +19,13 @@ const UserListOverlay: React.FC<UserListOverlayProps> = () => {
     const loadUsers = async () => {
       try {
         const fetchedUsers = await fetchUsers();
-        setUsers(fetchedUsers);
+        // Filtra o usuário logado da lista com normalização
+        const filteredUsers = fetchedUsers.filter(
+          (user) =>
+            user.email.trim().toLowerCase() !==
+            currentUserEmail.trim().toLowerCase()
+        );
+        setUsers(filteredUsers);
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
       } finally {
@@ -28,7 +34,7 @@ const UserListOverlay: React.FC<UserListOverlayProps> = () => {
     };
 
     loadUsers();
-  }, []);
+  }, [currentUserEmail]);
 
   const handleChangePasswordClick = (email: string) => {
     setSelectedUser(email);

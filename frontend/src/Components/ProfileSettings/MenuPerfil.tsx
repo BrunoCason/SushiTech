@@ -13,17 +13,20 @@ const MenuPerfil = () => {
   const [activeComponent, setActiveComponent] =
     useState<string>("profileSettings");
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null); // Adiciona o estado para armazenar o e-mail do usuário logado
 
   useEffect(() => {
     const fetchUserRole = async () => {
       const uid = auth.currentUser?.uid; // Obtém o UID do usuário autenticado
+      const email = auth.currentUser?.email; // Obtém o e-mail do usuário autenticado
 
       if (uid) {
-        // Verifica se uid não é undefined
         const role = await getUserRole(uid); // Chama a função apenas se uid estiver definido
         setIsAdmin(role === "admin"); // Define isAdmin com base na role
+        setCurrentUserEmail(email || null); // Define o e-mail do usuário logado
       } else {
         setIsAdmin(false); // Se não houver usuário autenticado, não é admin
+        setCurrentUserEmail(null);
       }
     };
 
@@ -37,8 +40,9 @@ const MenuPerfil = () => {
       case "createUser":
         return isAdmin ? <CreateUser /> : <ProfileSettings />;
       case "userListOverlay":
-        return isAdmin ? (
+        return isAdmin && currentUserEmail ? ( // Verifica se o e-mail do usuário está disponível
           <UserListOverlay
+            currentUserEmail={currentUserEmail}
             users={[]}
             onClose={function (): void {
               throw new Error("Function not implemented.");
@@ -86,7 +90,7 @@ const MenuPerfil = () => {
   return (
     <div className="flex flex-col items-center sm:items-start sm:flex-row justify-center container mt-24 2xl:mt-40 xl:-ml-20 mb-10">
       <nav>
-        <ul className=" font-inter text-xl font-bold w-60 h-80 bg-EBEBEB flex flex-col justify-center rounded-md mb-10">
+        <ul className="font-inter text-xl font-bold w-60 h-80 bg-EBEBEB flex flex-col justify-center rounded-md mb-10">
           {menuItems.map((item, index) => (
             <li key={item.id} className="flex flex-col">
               <div className="flex items-center">

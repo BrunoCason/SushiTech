@@ -7,5 +7,6 @@ export interface User {
 
 export interface UserListOverlayProps {
   users: User[];
+  currentUserEmail: string;
   onClose: () => void;
 }

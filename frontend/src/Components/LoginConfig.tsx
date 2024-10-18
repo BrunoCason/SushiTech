@@ -32,9 +32,9 @@ const LoginConfig: React.FC = () => {
   };
 
   return (
-    <section className="bg-gray-200 min-h-screen flex items-center justify-center">
+    <section className="bg-gray-200 min-h-screen flex items-center justify-center font-inter">
       <PageTitle title="Login" />
-      <main className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+      <main className="w-full max-w-md p-6 mx-5 bg-white rounded-lg shadow-xl">
         <h2 className="text-3xl font-bold text-center mb-6">Login</h2>
         <form onSubmit={handleEmailLogin} className="flex flex-col">
           <input
@@ -42,7 +42,7 @@ const LoginConfig: React.FC = () => {
             placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-CC3333"
           />
           <div className="relative mb-6">
             <input
@@ -50,7 +50,7 @@ const LoginConfig: React.FC = () => {
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-CC3333'}`}
             />
             <button
               type="button"
@@ -69,7 +69,7 @@ const LoginConfig: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 bg-CC3333 text-white font-semibold rounded-lg transition-colors"
           >
             Login
           </button>

@@ -47,8 +47,8 @@ export const createTableUser = async (req: Request, res: Response): Promise<void
     return;
   }
 
-  const email = `table${tableNumber}@restaurant.com`;
-  const password = `password${tableNumber}`;
+  const email = `mesa${tableNumber}@sushitech.com`;
+  const password = `SushiTech${tableNumber}`;
 
   try {
     // Cria o usuário
