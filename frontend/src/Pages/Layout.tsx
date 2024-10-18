@@ -5,7 +5,7 @@ import { auth } from '../firebaseAuth';
 import { User } from 'firebase/auth';
 
 const Layout: React.FC = () => {
-  const [user, setUser] = useState<User | undefined>(undefined); // Ajuste o estado para User | undefined
+  const [user, setUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {

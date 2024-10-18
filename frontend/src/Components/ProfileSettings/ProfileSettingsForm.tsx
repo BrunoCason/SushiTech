@@ -11,7 +11,6 @@ import {
   fetchUserProfile,
   updateUserProfile,
 } from "../../Services/userService";
-import ModalConfirmation from "../ModalConfirmation";
 import { FaUserLarge } from "react-icons/fa6";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
@@ -29,11 +28,21 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
     string | null
   >(null);
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
+
+  // Estados para nome e telefone
   const [name, setName] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
-  const [modalMessage, setModalMessage] = useState<string>("");
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // Estados de erro para nome e telefone
+  const [nameError, setNameError] = useState<boolean>(false);
+  const [phoneError, setPhoneError] = useState<boolean>(false);
+
+  // Armazena os valores iniciais do perfil
+  const [initialName, setInitialName] = useState<string>("");
+  const [initialPhone, setInitialPhone] = useState<string>("");
+
+  // Estado de loading
+  const [loading, setLoading] = useState(true); // Inicia como true para exibir o spinner no início
 
   useEffect(() => {
     const fetchUserProfileData = async () => {
@@ -41,8 +50,14 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
         const profileData = await fetchUserProfile(user.uid);
         setName(profileData.name || "");
         setPhone(profileData.phone || "");
+
+        // Define os valores iniciais para comparação posterior
+        setInitialName(profileData.name || "");
+        setInitialPhone(profileData.phone || "");
       } catch (error) {
         console.error("Erro ao buscar dados do perfil:", error);
+      } finally {
+        setLoading(false); // Desativa o loading após buscar os dados
       }
     };
 
@@ -53,6 +68,28 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
     e.preventDefault();
     setCurrentPasswordError(null);
     setNewPasswordError(null);
+
+    // Verifica se nome e telefone estão preenchidos
+    let formIsValid = true;
+
+    if (!name.trim()) {
+      setNameError(true);
+      formIsValid = false;
+    } else {
+      setNameError(false);
+    }
+
+    if (!phone.trim()) {
+      setPhoneError(true);
+      formIsValid = false;
+    } else {
+      setPhoneError(false);
+    }
+
+    if (!formIsValid) {
+      return; // Para a execução caso algum campo esteja inválido
+    }
+
     setLoading(true);
 
     if (newPassword && newPassword === currentPassword) {
@@ -62,8 +99,10 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
     }
 
     try {
-      // Atualiza dados de perfil
-      await updateUserProfile(user.uid, { name, phone });
+      // Atualiza dados de perfil somente se houverem mudanças
+      if (name !== initialName || phone !== initialPhone) {
+        await updateUserProfile(user.uid, { name, phone });
+      }
 
       // Se a nova senha for fornecida, atualiza a senha
       if (newPassword) {
@@ -79,26 +118,23 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
         await updatePassword(user, newPassword);
       }
 
-      // Exibe o modal de sucesso
-      setModalMessage("Perfil atualizado com sucesso!");
-      setShowModal(true);
-
       // Limpa os campos
       setCurrentPassword("");
       setNewPassword("");
-
-      // Fecha o modal após 3 segundos
-      setTimeout(() => setShowModal(false), 3000);
     } catch (err) {
       if ((err as Error).message.includes("auth/wrong-password")) {
         setCurrentPasswordError("Senha incorreta");
       } else {
-        setCurrentPasswordError("Senha incorreta");
+        setCurrentPasswordError("Erro ao atualizar o perfil");
       }
     } finally {
       setLoading(false); // Desativa o estado de carregamento
     }
   };
+
+  // Verifica se algum campo foi alterado
+  const isFormChanged =
+    name !== initialName || phone !== initialPhone || newPassword !== "";
 
   return (
     <div className="container font-inter font-normal text-base w-80 md:w-96">
@@ -106,104 +142,115 @@ const ProfileSettingsForm = ({ user }: ProfileSettingsFormProps) => {
       <div className="text-center mb-7">
         <h2 className="text-xl font-bold">Perfil</h2>
       </div>
-      <form onSubmit={handleUpdate}>
-        <div className="mb-4 relative">
-          <label className="block text-gray-700">Nome</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
-          />
-          <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3" />
+      {loading ? ( // Condicional para mostrar loading
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FaSpinner className="animate-spin h-8 w-8 text-CC3333" />
         </div>
-        <div className="mb-4 relative">
-          <label className="block text-gray-700">Email</label>
-          <p className="text-gray-900 border-black border-b py-2">
-            {user.email}
-          </p>
-          <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4" />
-        </div>
-        <div className="mb-4 relative">
-          <label className="block text-gray-700">Telefone</label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="py-2 border-b border-black placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96"
-          />
-          <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3" />
-        </div>
-        <div className="relative mb-4">
-          <label className="block text-gray-700">Senha Atual</label>
-          <input
-            type={showCurrentPassword ? "text" : "password"}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
-              currentPasswordError ? "border-red-500" : "border-black"
-            }`}
-            placeholder="Digite sua senha atual"
-          />
+      ) : (
+        <form onSubmit={handleUpdate}>
+          <div className="mb-4 relative">
+            <label className="block text-gray-700">Nome</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+                nameError ? "border-red-500" : "border-black"
+              }`}
+              placeholder="Digite seu nome"
+            />
+            <FaUserLarge className="absolute inset-y-0 right-0 mt-11 mr-2 h-3 w-3" />
+          </div>
+          <div className="mb-4 relative">
+            <label className="block text-gray-700">Email</label>
+            <p className="text-gray-900 border-black border-b py-2">
+              {user.email}
+            </p>
+            <MdEmail className="absolute inset-y-0 right-0 mt-10 mr-2 h-4 w-4" />
+          </div>
+          <div className="mb-4 relative">
+            <label className="block text-gray-700">Telefone</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+                phoneError ? "border-red-500" : "border-black"
+              }`}
+              placeholder="Digite seu telefone"
+            />
+            <FaPhoneAlt className="absolute inset-y-0 right-0 mt-10 mr-2 h-3 w-3" />
+          </div>
+          <div className="relative mb-4">
+            <label className="block text-gray-700">Senha Atual</label>
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+                currentPasswordError ? "border-red-500" : "border-black"
+              }`}
+              placeholder="Digite sua senha atual"
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute inset-y-0 right-0 pr-2 mt-6"
+            >
+              {showCurrentPassword ? (
+                <FaEyeSlash className="h-4 w-4 text-black" />
+              ) : (
+                <FaEye className="h-4 w-4 text-black" />
+              )}
+            </button>
+            {currentPasswordError && (
+              <p className="text-red-500 text-sm mt-1">
+                {currentPasswordError}
+              </p>
+            )}
+          </div>
+          <div className="relative mb-7">
+            <label className="block text-gray-700">Nova Senha</label>
+            <input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
+                newPasswordError ? "border-red-500" : "border-black"
+              }`}
+              placeholder="Digite sua nova senha"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute inset-y-0 right-0 pr-2 mt-6"
+            >
+              {showNewPassword ? (
+                <FaEyeSlash className="h-4 w-4 text-black" />
+              ) : (
+                <FaEye className="h-4 w-4 text-black" />
+              )}
+            </button>
+            {newPasswordError && (
+              <p className="text-red-500 text-sm mt-1">{newPasswordError}</p>
+            )}
+          </div>
           <button
-            type="button"
-            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-            className="absolute inset-y-0 right-0 pr-2 mt-6"
+            type="submit"
+            className={`w-full bg-CC3333 text-white font-bold py-2 px-4 rounded-md ${
+              loading || !isFormChanged ? "opacity-50" : ""
+            }`}
+            disabled={loading || !isFormChanged}
           >
-            {showCurrentPassword ? (
-              <FaEyeSlash className="h-4 w-4 text-black" />
-            ) : (
-              <FaEye className="h-4 w-4 text-black" />
+            Atualizar
+            {loading && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <FaSpinner className="animate-spin h-8 w-8 text-CC3333" />
+              </div>
             )}
           </button>
-          {currentPasswordError && (
-            <p className="text-red-500 text-sm mt-1">{currentPasswordError}</p>
-          )}
-        </div>
-        <div className="relative mb-7">
-          <label className="block text-gray-700">Nova Senha</label>
-          <input
-            type={showNewPassword ? "text" : "password"}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className={`py-2 border-b placeholder:text-D4D4D4 focus:outline-none w-80 md:w-96 ${
-              newPasswordError ? "border-red-500" : "border-black"
-            }`}
-            placeholder="Digite sua nova senha"
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword(!showNewPassword)}
-            className="absolute inset-y-0 right-0 pr-2 mt-6"
-          >
-            {showNewPassword ? (
-              <FaEyeSlash className="h-4 w-4 text-black" />
-            ) : (
-              <FaEye className="h-4 w-4 text-black" />
-            )}
-          </button>
-          {newPasswordError && (
-            <p className="text-red-500 text-sm mt-1">{newPasswordError}</p>
-          )}
-        </div>
-        <button
-          type="submit"
-          className={`w-full bg-CC3333 text-white font-bold py-2 px-4 rounded-md ${
-            loading ? "cursor-not-allowed" : ""
-          }`}
-          disabled={loading}
-        >
-          Atualizar
-          {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <FaSpinner className="animate-spin text-CC3333 h-8 w-8" />
-            </div>
-          )}
-        </button>
-      </form>
-
-      {/* Renderiza o modal se showModal for true */}
-      {showModal && <ModalConfirmation message={modalMessage} />}
+        </form>
+      )}
     </div>
   );
 };

@@ -235,7 +235,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               <button
                 onClick={handleEditProduct}
                 className={`${
-                  isModified ? "bg-CC3333" : "bg-ADABAC"
+                  isModified ? "bg-CC3333" : "bg-CC3333 bg-opacity-50"
                 } rounded-md text-white font-bold w-24 h-9 flex items-center justify-center`}
                 disabled={!isModified || loading}
               >

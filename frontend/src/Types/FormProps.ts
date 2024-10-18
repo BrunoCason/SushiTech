@@ -3,6 +3,7 @@ import { User } from "./User";
 export interface ChangePasswordFormProps {
   email: string;
   onClose: () => void;
+  onPasswordChangeSuccess: () => void;
 }
 
 export interface DeleteUserConfirmationProps {
@@ -12,5 +13,5 @@ export interface DeleteUserConfirmationProps {
 }
 
 export interface ProfileSettingsFormProps {
-  user: User; // Recebe o usuário como prop
+  user: User;
 }

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Navigate, useParams } from "react-router-dom";
 import { User } from "firebase/auth";
 import { auth } from "../firebaseAuth";
 
-const PrivateRoute: React.FC = () => {
+const PrivateRoute = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams<{ id: string }>();
@@ -23,9 +23,10 @@ const PrivateRoute: React.FC = () => {
   }
 
   // Verifica se o e-mail do usuário começa com 'table' e restringe o acesso
-  const isTableUser = user.email?.startsWith('table');
+  const isTableUser = user.email?.startsWith("table");
   if (isTableUser) {
-    const tableNumber = user.email?.split('@')[0].replace('table', '');
+    const tableNumber = user.email?.split("@")[0].replace("table", "");
+    console.log(tableNumber);
 
     // Verifica se o usuário está tentando acessar uma rota que não é a sua própria mesa
     if (!tableNumber || tableNumber !== id) {

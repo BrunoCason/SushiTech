@@ -21,11 +21,11 @@ const AppRoutes = () => {
           </AuthRoute>
         }
       />
-      
-      <Route path="/table/:id" element={<Table />} />
-      <Route path="/my-orders/:id" element={<MyOrders />} />
-      
+
       <Route element={<PrivateRoute />}>
+        <Route path="/table/:id" element={<Table />} />
+        <Route path="/my-orders/:id" element={<MyOrders />} />
+
         <Route element={<Layout />}>
           <Route path="/tables" element={<Tables />} />
           <Route path="/" element={<Products />} />
