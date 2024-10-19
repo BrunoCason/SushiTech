@@ -22,7 +22,6 @@ const Header = ({ user }: HeaderProps) => {
     }
   };
 
-  // Fechar o menu quando a rota mudar
   useEffect(() => {
     setMenuOpen(false);
     setMobileMenuOpen(false); // Fechar o menu mobile ao mudar de rota
@@ -31,10 +30,13 @@ const Header = ({ user }: HeaderProps) => {
   return (
     <header className="bg-DEDEDE text-black text-base font-bold font-inter px-8 py-4 fixed w-full top-0 z-30">
       <nav className="container mx-auto flex justify-between items-center px-4 sm:px-0">
-        {/* Logo */}
-        <h1 className="text-2xl font-bold">
-          <Link to="/">LOGO</Link>
-        </h1>
+        <Link to="/">
+          <img
+            className="w-36 -ml-5 sm:-ml-0 cursor-pointer"
+            src="https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/logos%2FTech-escrito.png?alt=media&token=e17143b7-f599-41d9-9c85-ce3f8508645e"
+            alt="logo"
+          />
+        </Link>
 
         {/* Menu para Mobile */}
         <div className="sm:hidden flex items-center">
@@ -126,7 +128,10 @@ const Header = ({ user }: HeaderProps) => {
               </Link>
             </li>
             <li>
-              <Link to="/profile-settings" className="hover:text-gray-400 block">
+              <Link
+                to="/profile-settings"
+                className="hover:text-gray-400 block"
+              >
                 Configurações
               </Link>
             </li>

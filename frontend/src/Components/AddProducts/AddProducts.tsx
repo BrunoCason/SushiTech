@@ -60,6 +60,7 @@ const AddProducts = () => {
   const [productPriceInvalid, setProductPriceInvalid] = useState(false);
   const [productImageInvalid, setProductImageInvalid] = useState(false);
   const [productTagsInvalid, setProductTagsInvalid] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const handleAddProduct = async () => {
     // Converte o preço para centavos
@@ -130,6 +131,7 @@ const AddProducts = () => {
       setProductDescription("");
       setProductPrice("");
       setProductImage(null);
+      setPreviewImageUrl(null);
       setTagInput("");
       setProductTags([]);
       fetchProducts();
@@ -245,6 +247,19 @@ const AddProducts = () => {
         ? product.name.toLowerCase().includes(searchTerm.toLowerCase())
         : true
     );
+
+  // Função para lidar com a mudança da imagem
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    setProductImage(file);
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file); // Gerar a URL temporária da imagem
+      setPreviewImageUrl(imageUrl); // Atualizar o estado de visualização
+    } else {
+      setPreviewImageUrl(null); // Limpar a visualização se não houver arquivo
+    }
+  };
 
   return (
     <div className="container mx-auto mt-20 font-inter">
@@ -445,11 +460,7 @@ const AddProducts = () => {
                   id="fileInput"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files ? e.target.files[0] : null;
-                    setProductImage(file);
-                    setProductImageInvalid(!file);
-                  }}
+                  onChange={handleImageChange}
                   className="hidden"
                 />
                 <label
@@ -460,7 +471,15 @@ const AddProducts = () => {
                       : "bg-gray-300"
                   }`}
                 >
-                  <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
+                  {previewImageUrl ? (
+                    <img
+                      src={previewImageUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover opacity-50 rounded-md"
+                    />
+                  ) : (
+                    <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
+                  )}
                 </label>
               </div>
 

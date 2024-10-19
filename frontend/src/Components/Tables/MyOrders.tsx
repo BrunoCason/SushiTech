@@ -108,10 +108,7 @@ const MyOrders = () => {
   return (
     <div className="p-6 font-inter container mx-auto min-h-screen">
       <PageTitle title={`Meus Pedidos - Mesa ${id}`} />
-      <div className="flex mb-10">
-        <p>LOGO</p>
-        <p className="font-semibold text-3xl">Meus Pedidos</p>
-      </div>
+      <p className="font-semibold text-3xl mb-5">Meus Pedidos</p>
       <Link to={`/table/${id}`}>
         <button className="border-2 border-CC3333 rounded-md font-bold text-sm py-1 px-5 mb-10">
           Retornar

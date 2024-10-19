@@ -38,7 +38,7 @@ const MenuOrders = () => {
             <button
               onClick={() => setActiveComponent(item.id)}
               className={`${
-                activeComponent === item.id ? "text-CC3333" : "text-gray-300"
+                activeComponent === item.id ? "text-CC3333" : "text-E6E6E"
               }`}
             >
               {item.label}

@@ -24,7 +24,7 @@ const tagsOptions = [
   "Katsu",
 ];
 
-const EditProductForm: React.FC<EditProductFormProps> = ({
+const EditProductForm = ({
   productId,
   productName,
   productDescription,
@@ -32,7 +32,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   productTags,
   onUpdate,
   onCancel,
-}) => {
+}: EditProductFormProps) => {
   const [editProductName, setEditProductName] = useState<string>(productName);
   const [editProductDescription, setEditProductDescription] =
     useState<string>(productDescription);
@@ -45,15 +45,21 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   const [showTagsMenu, setShowTagsMenu] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isModified, setIsModified] = useState(false); // Estado para rastrear modificações
+  const [isModified, setIsModified] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // Atualiza o input com a tag selecionada quando o modal é aberto
-    if (editProductTag) {
-      setTagInput(editProductTag); // Exibe a tag selecionada no input
-    }
+    const fetchProductImage = async () => {
+      const productRef = doc(db, "products", productId);
+      const productDoc = await getDoc(productRef);
+      setCurrentImageUrl(productDoc.data()?.image || "");
+    };
 
-    // Verifica se houve alguma modificação nos campos do produto
+    fetchProductImage();
+  }, [productId]);
+
+  useEffect(() => {
     const hasChanges =
       editProductName !== productName ||
       editProductDescription !== productDescription ||
@@ -151,6 +157,16 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
     return valorString.replace(".", ",");
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    setEditProductImage(file);
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file); // Gerar a URL temporária da imagem
+      setPreviewImageUrl(imageUrl); // Atualizar o estado de visualização
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -160,16 +176,28 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               id="fileInput"
               type="file"
               accept="image/*"
-              onChange={(e) =>
-                setEditProductImage(e.target.files ? e.target.files[0] : null)
-              }
+              onChange={handleImageChange}
               className="hidden"
             />
             <label
               htmlFor="fileInput"
-              className="flex flex-col justify-center items-center w-24 sm:w-48 h-96 bg-gray-300 rounded-md cursor-pointer"
+              className="relative flex flex-col justify-center items-center w-24 sm:w-48 h-96 bg-gray-300 rounded-md cursor-pointer"
             >
-              <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
+              {previewImageUrl ? ( // Se houver uma nova imagem selecionada, mostra a visualização
+                <img
+                  src={previewImageUrl}
+                  alt="Nova Imagem do Produto"
+                  className="w-full h-full object-cover rounded-md opacity-50 hover:opacity-100 transition-opacity duration-300"
+                />
+              ) : currentImageUrl ? ( // Caso contrário, mostra a imagem existente
+                <img
+                  src={currentImageUrl}
+                  alt="Produto"
+                  className="w-full h-full object-cover rounded-md opacity-50 hover:opacity-100 transition-opacity duration-300"
+                />
+              ) : (
+                <IoMdImage className="w-20 sm:w-32 h-60 text-gray-600" />
+              )}
             </label>
           </div>
           <div className="sm:w-72 flex flex-col justify-center">

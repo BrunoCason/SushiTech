@@ -10,6 +10,7 @@ import { db } from "../../Services/firebaseConfig";
 import { Table, Product } from "../../Types";
 import { FaSpinner } from "react-icons/fa";
 import ModalConfirmation from "../ModalConfirmation";
+import PageTitle from "../PageTitle";
 
 const ReadyOrders = () => {
   const [readyProducts, setReadyProducts] = useState<
@@ -97,6 +98,7 @@ const ReadyOrders = () => {
 
   return (
     <div className="font-inter flex justify-center container mx-auto">
+      <PageTitle title="Pedidos Prontos" />
       <div>
         {loading ? (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
