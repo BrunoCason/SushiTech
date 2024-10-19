@@ -265,7 +265,7 @@ const IndividualTable = () => {
                   }
                 })
               }
-              className={`text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer ${
+              className={`text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer hover:bg-CC3333 hover:font-bold hover:text-white hover:transition-transform duration-300 ${
                 selectedTags.includes(tag)
                   ? "font-bold text-white bg-CC3333"
                   : ""
@@ -287,13 +287,13 @@ const IndividualTable = () => {
         </div>
         <button
           onClick={toggleModal}
-          className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-10 mb-4 lg:mb-0"
+          className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-10 mb-4 lg:mb-0 hover:bg-C99F45 hover:text-white hover:transition-transform duration-300"
         >
           <IoBag className="mr-1 xl:mr-3" />
           Sacola
         </button>
         <Link to={`/my-orders/${id}`}>
-          <button className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm flex items-center justify-center w-32 h-10">
+          <button className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm flex items-center justify-center w-32 h-10 hover:bg-CC3333 hover:text-white hover:transition-transform duration-300">
             <FaClipboardList className="mr-2" />
             Meus Pedidos
           </button>
@@ -357,7 +357,7 @@ const IndividualTable = () => {
                               </div>
                               <button
                                 onClick={() => handleAddToCart(product)}
-                                className="border border-C99F45 rounded-md text-C99F45 font-bold text-xs flex items-center px-1 h-5 sm:h-7"
+                                className="border border-C99F45 rounded-md text-C99F45 font-bold text-xs flex items-center px-1 h-5 sm:h-7 hover:bg-C99F45 hover:text-white hover:transition-transform duration-300"
                               >
                                 <IoBag className="mr-1" />
                                 Adicionar
@@ -438,7 +438,7 @@ const IndividualTable = () => {
                                 </div>
                                 <button
                                   onClick={() => handleAddToCart(product)}
-                                  className="border border-C99F45 rounded-md text-C99F45 font-bold text-xs flex items-center px-1 h-5 sm:h-7"
+                                  className="border border-C99F45 rounded-md text-C99F45 font-bold text-xs flex items-center px-1 h-5 sm:h-7 hover:bg-C99F45 hover:text-white hover:transition-transform duration-300"
                                 >
                                   <IoBag className="mr-1" />
                                   Adicionar
@@ -485,7 +485,7 @@ const IndividualTable = () => {
                 <h2 className="text-2xl font-semibold">Itens Adicionados</h2>
                 <RiDeleteBin6Fill
                   onClick={handleClearCart}
-                  className="text-CC3333 h-5 w-5 cursor-pointer"
+                  className="text-CC3333 h-5 w-5 cursor-pointer hover:scale-110 transform transition-transform duration-300"
                 />
               </div>
               {cartItems.length > 0 ? (

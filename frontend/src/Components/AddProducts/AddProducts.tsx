@@ -284,7 +284,7 @@ const AddProducts = () => {
                   }
                 })
               }
-              className={`text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer ${
+              className={`text-CC3333 rounded-full px-3 py-1 text-sm mr-2 mb-2 cursor-pointer hover:bg-CC3333 hover:font-bold hover:text-white hover:transition-transform duration-300 ${
                 selectedTags.includes(tag)
                   ? "font-bold text-white bg-CC3333"
                   : ""
@@ -305,7 +305,7 @@ const AddProducts = () => {
           />
         </div>
         <button
-          className="flex justify-center items-center text-sm w-44 h-10 p-2 font-bold text-CC3333 border border-CC3333 rounded-md"
+          className="flex justify-center items-center text-sm w-44 h-10 p-2 font-bold text-CC3333 border border-CC3333 rounded-md  hover:bg-CC3333 hover:text-white hover:transition-transform duration-300"
           onClick={() => setIsModalOpen(true)}
         >
           <IoMdAdd className="h-4 w-4" />
@@ -355,7 +355,7 @@ const AddProducts = () => {
                                   setEditProductTags(product.tags);
                                 }}
                               >
-                                <MdEdit />
+                                <MdEdit className="hover:scale-110 transform transition-transform duration-300"/>
                               </button>
                               <DeleteProductButton
                                 productId={product.id}
@@ -417,7 +417,7 @@ const AddProducts = () => {
                                     setEditProductTags(product.tags);
                                   }}
                                 >
-                                  <MdEdit />
+                                  <MdEdit className="hover:scale-110 transform transition-transform duration-300"/>
                                 </button>
                                 <DeleteProductButton
                                   productId={product.id}

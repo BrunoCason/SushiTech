@@ -110,7 +110,7 @@ const MyOrders = () => {
       <PageTitle title={`Meus Pedidos - Mesa ${id}`} />
       <p className="font-semibold text-3xl mb-5">Meus Pedidos</p>
       <Link to={`/table/${id}`}>
-        <button className="border-2 border-CC3333 rounded-md font-bold text-sm py-1 px-5 mb-10">
+        <button className="border-2 border-CC3333 text-CC3333 rounded-md font-bold text-sm py-1 px-5 mb-10">
           Retornar
         </button>
       </Link>
@@ -148,7 +148,7 @@ const MyOrders = () => {
                   <div className="flex justify-center items-center -mr-10 lg:-mr-0">
                     {order.status === "pendente" ? (
                       <RiDeleteBin6Fill
-                        className="cursor-pointer text-CC3333 h-5 w-5"
+                        className="cursor-pointer text-CC3333 h-5 w-5 hover:scale-110 transform transition-transform duration-300"
                         onClick={() => handleCancelOrder(index)}
                       />
                     ) : (
@@ -176,7 +176,7 @@ const MyOrders = () => {
                 <ul className="space-y-1 text-sm sm:text-base">
                   {orders.map((order, index) => (
                     <li key={index}>
-                      <p>{formatPrice(order.price * order.quantity)}</p>
+                      <p>R$ {formatPrice(order.price * order.quantity)}</p>
                     </li>
                   ))}
                 </ul>
@@ -187,7 +187,7 @@ const MyOrders = () => {
           </div>
           <div className="flex justify-between items-center">
             <p className="font-medium text-base">Total</p>
-            <p className="font-bold text-xl">{formatPrice(totalPrice)}</p>
+            <p className="font-bold text-xl">R$ {formatPrice(totalPrice)}</p>
           </div>
           <div className="flex justify-center mt-4 mb-2">
             <button className="rounded-md bg-white text-black font-semibold text-sm py-2 px-5">

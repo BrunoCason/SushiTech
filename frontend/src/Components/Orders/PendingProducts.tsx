@@ -174,7 +174,7 @@ const PendingProducts = () => {
                           item.product.orderNumber
                         )
                       }
-                      className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm p-2"
+                      className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm p-2 hover:bg-CC3333 hover:font-bold hover:text-white hover:transition-transform duration-300"
                     >
                       {isStartingOrder === item.product.orderNumber ? (
                         <FaSpinner className="animate-spin h-5 w-5" />
@@ -189,7 +189,7 @@ const PendingProducts = () => {
                           item.product.orderNumber
                         )
                       }
-                      className="text-CC3333 h-5 w-5 cursor-pointer mr-5 sm:mr-0"
+                      className="text-CC3333 h-5 w-5 cursor-pointer mr-5 sm:mr-0 hover:scale-110 transform transition-transform duration-300"
                     />
                     {loading && (
                       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

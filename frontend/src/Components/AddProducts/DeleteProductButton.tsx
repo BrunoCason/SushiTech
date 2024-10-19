@@ -52,7 +52,7 @@ const DeleteProductButton: React.FC<DeleteProductButtonProps> = ({
 
   return (
     <>
-      <button onClick={handleOpenModal} className="text-CC3333">
+      <button onClick={handleOpenModal} className="text-CC3333 hover:scale-110 transform transition-transform duration-300">
         <RiDeleteBin6Fill />
       </button>
 

@@ -79,11 +79,11 @@ const UserListOverlay = ({ currentUserEmail }: UserListOverlayProps) => {
                   <div className="flex space-x-7">
                     <MdEdit
                       onClick={() => handleChangePasswordClick(user.email)}
-                      className="h-5 w-5 cursor-pointer"
+                      className="h-5 w-5 cursor-pointer hover:scale-110 transform transition-transform duration-300"
                     />
                     <RiDeleteBin6Fill
                       onClick={() => handleDeleteUserClick(user.email)}
-                      className="h-5 w-5 text-red-600 cursor-pointer"
+                      className="h-5 w-5 text-red-600 cursor-pointer hover:scale-110 transform transition-transform duration-300"
                     />
                   </div>
                 </div>

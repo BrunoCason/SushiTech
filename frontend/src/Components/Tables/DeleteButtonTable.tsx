@@ -85,7 +85,7 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
               </button>
               <button
                 onClick={handleDeleteUser}
-                className="bg-CC3333 text-white py-2 px-6 rounded hover:bg-red-600"
+                className="bg-CC3333 text-white py-2 px-6 rounded"
               >
                 Confirmar
                 {loading && (
@@ -104,7 +104,7 @@ const DeleteButtonTable: React.FC<DeleteButtonTableProps> = ({
           e.preventDefault();
           setShowConfirm(true);
         }}
-        className="cursor-pointer w-5 h-5"
+        className="cursor-pointer w-5 h-5 hover:scale-110 transform transition-transform duration-300"
       />
 
       {showConfirmation && (

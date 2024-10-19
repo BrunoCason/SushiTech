@@ -137,7 +137,7 @@ const ReadyOrders = () => {
                             item.product.orderNumber
                           )
                         }
-                        className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm px-5 py-2"
+                        className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm px-5 py-2 hover:bg-CC3333 hover:font-bold hover:text-white hover:transition-transform duration-300"
                       >
                         {isStartingOrder === item.product.orderNumber ? (
                         <FaSpinner className="animate-spin h-5 w-5" />

@@ -127,7 +127,7 @@ const TablesAvailable = () => {
       <PageTitle title="Mesas" />
       <div className="flex items-center flex-col sm:flex-row sm:justify-between">
         <button
-          className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md sm:ml-120px md:ml-11 xl:ml-44 2xl:ml-60"
+          className="flex justify-center items-center text-sm w-40 mb-7 sm:mb-0 p-2 font-bold text-CC3333 border border-CC3333 rounded-md sm:ml-120px md:ml-11 xl:ml-44 2xl:ml-60 hover:bg-CC3333 hover:text-white hover:transition-transform duration-300"
           onClick={() => setIsModalOpen(true)}
         >
           <IoMdAdd className="h-4 w-4 mr-1" />
@@ -171,7 +171,7 @@ const TablesAvailable = () => {
                   className={`rounded-lg w-48 h-48 ${
                     table.products && table.products.length > 0
                       ? "bg-CC3333 text-white"
-                      : "bg-DEDEDE"
+                      : "bg-DEDEDE "
                   }`}
                 >
                   <div>
@@ -203,7 +203,7 @@ const TablesAvailable = () => {
                               setEditTableId(table.id);
                               setEditTableNumber(table.number);
                             }}
-                            className="cursor-pointer w-5 h-5 mr-2"
+                            className="cursor-pointer w-5 h-5 mr-2 hover:scale-110 transform transition-transform duration-300"
                           />
                           <DeleteButtonTable
                             tableId={table.id}

@@ -51,17 +51,17 @@ const Header = ({ user }: HeaderProps) => {
         {/* Menu para Desktop */}
         <ul className="hidden sm:flex space-x-10 items-center">
           <li>
-            <Link to="/tables" className="hover:text-gray-400">
+            <Link to="/tables" className="hover:text-gray-600">
               Mesas
             </Link>
           </li>
           <li>
-            <Link to="/" className="hover:text-gray-400">
+            <Link to="/" className="hover:text-gray-600">
               Produtos
             </Link>
           </li>
           <li>
-            <Link to="/orders" className="hover:text-gray-400">
+            <Link to="/orders" className="hover:text-gray-600">
               Pedidos
             </Link>
           </li>
@@ -113,24 +113,24 @@ const Header = ({ user }: HeaderProps) => {
         <div className="sm:hidden fixed top-0 right-0 w-64 h-full bg-DEDEDE p-4 z-30 flex items-center justify-center">
           <ul className="space-y-4 text-center">
             <li>
-              <Link to="/tables" className="hover:text-gray-400 block">
+              <Link to="/tables" className="hover:text-gray-600 block">
                 Mesas
               </Link>
             </li>
             <li>
-              <Link to="/" className="hover:text-gray-400 block">
+              <Link to="/" className="hover:text-gray-600 block">
                 Produtos
               </Link>
             </li>
             <li>
-              <Link to="/orders" className="hover:text-gray-400 block">
+              <Link to="/orders" className="hover:text-gray-600 block">
                 Pedidos
               </Link>
             </li>
             <li>
               <Link
                 to="/profile-settings"
-                className="hover:text-gray-400 block"
+                className="hover:text-gray-600 block"
               >
                 Configurações
               </Link>
@@ -139,7 +139,7 @@ const Header = ({ user }: HeaderProps) => {
               <li>
                 <button
                   onClick={handleLogout}
-                  className="block w-full hover:text-gray-400 mt-10"
+                  className="block w-full hover:text-gray-600 mt-10"
                 >
                   Logout
                 </button>
