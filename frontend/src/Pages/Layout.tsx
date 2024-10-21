@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../Components/Header';
 import { auth } from '../firebaseAuth';
 import { User } from 'firebase/auth';
+import Notifications from '../Components/Notifications';
 
 const Layout: React.FC = () => {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -20,6 +21,7 @@ const Layout: React.FC = () => {
       <main className="container mx-auto">
         <Outlet />
       </main>
+      <Notifications />
     </div>
   );
 };

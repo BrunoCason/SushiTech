@@ -11,17 +11,18 @@ import { FaSearch, FaSpinner } from "react-icons/fa";
 import ModalConfirmation from "../ModalConfirmation";
 
 const tagsOptions = [
-  "Temaki",
-  "Frito",
   "Bebida",
-  "Sashimi",
-  "Nigiri",
-  "Sushi",
-  "Maki",
+  "Combos",
   "Donburi",
+  "Frito",
+  "Katsu",
+  "Maki",
+  "Nigiri",
+  "Sashimi",
+  "Sushi",
+  "Temaki",
   "Uramaki",
   "Yakimeshi",
-  "Katsu",
 ];
 
 const AddProducts = () => {

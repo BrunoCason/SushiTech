@@ -27,17 +27,18 @@ import { FaSearch, FaSpinner } from "react-icons/fa";
 import ModalConfirmation from "../ModalConfirmation";
 
 const tagsOptions = [
-  "Temaki",
-  "Frito",
   "Bebida",
-  "Sashimi",
-  "Nigiri",
-  "Sushi",
-  "Maki",
+  "Combos",
   "Donburi",
+  "Frito",
+  "Katsu",
+  "Maki",
+  "Nigiri",
+  "Sashimi",
+  "Sushi",
+  "Temaki",
   "Uramaki",
   "Yakimeshi",
-  "Katsu",
 ];
 
 const IndividualTable = () => {
@@ -136,35 +137,38 @@ const IndividualTable = () => {
 
   const handlePlaceOrder = async () => {
     if (!tableDocId || cartItems.length === 0) return;
-
+  
     setLoading(true);
     setShowModal(false);
-
+  
     try {
       const tableRef = doc(db, "tables", tableDocId);
-      const tableDoc = await getDoc(tableRef);
-      const currentProducts = tableDoc.data()?.products || [];
 
-      // Cria um novo array de produtos que inclui os produtos do carrinho
+      const tableDoc = await getDoc(tableRef);
+  
+      // Recupera a lista atual de produtos da mesa, ou um array vazio se não houver produtos
+      const currentProducts = tableDoc.data()?.products || [];
+  
+      // Cria um novo array de produtos a partir dos itens no carrinho
       const newProducts = cartItems.map((item) => ({
         ...item,
-        status: "pendente", // Todos os novos produtos começam como pendentes
+        status: "pendente", // Define o status inicial de cada produto como "pendente"
         image: products.find((product) => product.id === item.id)?.image || "",
         orderNumber: generateOrderNumber(), // Gera um número único de pedido para cada produto
       }));
-
-      // Atualiza a lista de produtos, garantindo que os novos produtos sejam adicionados
+  
+      // Combina os produtos existentes na mesa com os novos produtos do carrinho
       const mergedProducts = [...currentProducts, ...newProducts];
-
+  
       await updateDoc(tableRef, {
-        products: mergedProducts, // Atualiza a lista de produtos com os novos e existentes
+        products: mergedProducts,
       });
-
-      dispatch(clearCart()); // Limpa o carrinho após o pedido ser feito
+  
+      dispatch(clearCart());
 
       setModalMessage("Pedido realizado com sucesso!");
       setShowModal(true);
-
+  
       setTimeout(() => {
         setShowModal(false);
       }, 3000);
@@ -174,6 +178,7 @@ const IndividualTable = () => {
       setLoading(false);
     }
   };
+  
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -234,6 +239,11 @@ const IndividualTable = () => {
         : true
     );
 
+  const totalItems = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
   if (!tableExists) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -287,10 +297,15 @@ const IndividualTable = () => {
         </div>
         <button
           onClick={toggleModal}
-          className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-10 mb-4 lg:mb-0 hover:bg-C99F45 hover:text-white hover:transition-transform duration-300"
+          className="border border-C99F45 rounded-md text-C99F45 font-bold text-sm flex items-center justify-center w-32 h-10 mb-4 lg:mb-0 hover:bg-C99F45 hover:text-white hover:transition-transform duration-300 relative"
         >
           <IoBag className="mr-1 xl:mr-3" />
           Sacola
+          {totalItems > 0 && (
+            <span className=" absolute -top-2 right-1 bg-C99F45 border border-white text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+              {totalItems}
+            </span>
+          )}
         </button>
         <Link to={`/my-orders/${id}`}>
           <button className="border border-CC3333 rounded-md text-CC3333 font-bold text-sm flex items-center justify-center w-32 h-10 hover:bg-CC3333 hover:text-white hover:transition-transform duration-300">

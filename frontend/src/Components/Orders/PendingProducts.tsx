@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   doc,
   getDoc,
   updateDoc,
@@ -24,20 +24,22 @@ const PendingProducts = () => {
   const [deleteModalMessage, setDeleteModalMessage] = useState("");
 
   useEffect(() => {
-    const fetchPendingProducts = async () => {
-      try {
-        const tablesCollectionRef = collection(db, "tables");
-        const tablesSnapshot = await getDocs(tablesCollectionRef);
+    // Função que ouve mudanças nos pedidos pendentes em tempo real
+    const fetchPendingProducts = () => {
+      const tablesCollectionRef = collection(db, "tables");
 
+      // Listener em tempo real
+      const unsubscribe = onSnapshot(tablesCollectionRef, (snapshot) => {
         const pendingProductsList: { table: Table; product: Product }[] = [];
 
-        for (const tableDoc of tablesSnapshot.docs) {
+        snapshot.forEach((tableDoc) => {
           const tableData = tableDoc.data();
           const table: Table = {
             id: tableDoc.id,
             number: tableData.number,
             products: tableData.products || [],
             userId: tableData.userId || "",
+            status: "",
           };
 
           const productsWithStatusPendente = (
@@ -47,17 +49,19 @@ const PendingProducts = () => {
           for (const product of productsWithStatusPendente) {
             pendingProductsList.push({ table, product });
           }
-        }
+        });
 
         setPendingProducts(pendingProductsList);
-      } catch (error) {
-        console.error("Error fetching pending products: ", error);
-      } finally {
         setLoading(false); // Desativa o loading ao carregar os produtos
-      }
+      });
+
+      return unsubscribe;
     };
 
-    fetchPendingProducts();
+    const unsubscribe = fetchPendingProducts();
+
+    // Limpa o listener ao desmontar o componente
+    return () => unsubscribe();
   }, []);
 
   const handleStartOrder = async (tableId: string, orderNumber: string) => {
@@ -76,22 +80,18 @@ const PendingProducts = () => {
 
       await updateDoc(tableRef, { products: updatedProducts });
 
-      // Atualiza o estado local para remover o produto que foi iniciado
+      // Remove o produto da lista de pendentes localmente
       setPendingProducts((prevProducts) =>
         prevProducts.filter((item) => item.product.orderNumber !== orderNumber)
       );
 
-      // Exibe o modal de confirmação com a mensagem
       setModalMessage(`Pedido #${orderNumber} iniciado!`);
       setShowModal(true);
-
-      console.log("Product status updated to 'produção' successfully!");
     } catch (error) {
       console.error("Error updating product status: ", error);
     } finally {
-      setIsStartingOrder(null); // Desativa o loading após a ação
+      setIsStartingOrder(null);
 
-      // Esconde o modal de confirmação após 3 segundos
       setTimeout(() => {
         setShowModal(false);
       }, 3000);
@@ -117,11 +117,8 @@ const PendingProducts = () => {
         prevProducts.filter((item) => item.product.orderNumber !== orderNumber)
       );
 
-      // Exibe o modal de confirmação com a mensagem de exclusão
       setDeleteModalMessage(`Pedido #${orderNumber} cancelado!`);
-      setShowModal(true); // Mostra o modal de confirmação
-
-      console.log("Produto removido com sucesso!");
+      setShowModal(true);
     } catch (error) {
       console.error("Erro ao remover o produto: ", error);
     } finally {

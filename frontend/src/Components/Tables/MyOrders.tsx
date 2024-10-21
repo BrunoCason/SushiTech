@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   collection,
   getDocs,
@@ -8,12 +8,15 @@ import {
   DocumentData,
   updateDoc,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../Services/firebaseConfig";
 import PageTitle from "../PageTitle";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { FaSpinner } from "react-icons/fa";
 import ModalConfirmation from "../ModalConfirmation";
+import { auth } from "../../firebaseAuth";
+import { User } from "firebase/auth";
 
 const MyOrders = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,31 +27,49 @@ const MyOrders = () => {
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(
     null
   );
+  const [, setUser] = useState<User | null>(null);
+  const [isTableUser, setIsTableUser] = useState(false);
+  const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
+  const [
+    showCloseAccountConfirmationModal,
+    setShowCloseAccountConfirmationModal,
+  ] = useState(false);
+  const [totalToClose, setTotalToClose] = useState<number>(0);
+  const [tableStatus, setTableStatus] = useState<string>("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const tablesCollectionRef = collection(db, "tables");
-        const q = query(tablesCollectionRef, where("number", "==", id));
-        const querySnapshot = await getDocs(q);
+    const tablesCollectionRef = collection(db, "tables");
+    const q = query(tablesCollectionRef, where("number", "==", id));
 
-        if (!querySnapshot.empty) {
-          const tableDoc = querySnapshot.docs[0];
-          const tableData = tableDoc.data();
-
-          if (tableData && tableData.products) {
-            setOrders(tableData.products);
-          }
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const tableDoc = querySnapshot.docs[0];
+        const tableData = tableDoc.data();
+        if (tableData && tableData.products) {
+          setOrders(tableData.products);
         }
-      } catch (error) {
-        console.error("Error fetching orders: ", error);
-      } finally {
-        setLoading(false);
+        setTableStatus(tableData.status);
       }
-    };
+      setLoading(false);
+    });
 
-    fetchOrders();
+    return () => unsubscribe();
   }, [id]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      setUser(authUser);
+      if (authUser?.email?.startsWith("mesa")) {
+        setIsTableUser(true); // Define que o usuário é da mesa
+      } else {
+        setIsTableUser(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleCancelOrder = (index: number) => {
     setOrderToCancel(index);
@@ -74,7 +95,6 @@ const MyOrders = () => {
         }
 
         setLoading(false);
-
         setShowModal(false);
         setConfirmationMessage("Pedido cancelado com sucesso!");
 
@@ -103,6 +123,80 @@ const MyOrders = () => {
   const formatPrice = (priceInCents: number) => {
     const priceInReais = (priceInCents / 100).toFixed(2);
     return priceInReais.replace(".", ",");
+  };
+
+  const handleRequestCloseAccount = async () => {
+    // Atualiza o status da mesa para "fechamento"
+    const tablesCollectionRef = collection(db, "tables");
+    const q = query(tablesCollectionRef, where("number", "==", id));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const tableDoc = querySnapshot.docs[0];
+      const tableDocRef = doc(db, "tables", tableDoc.id);
+      await updateDoc(tableDocRef, { status: "fechamento" }); // Atualiza o status da mesa
+    }
+
+    setShowCloseAccountModal(true); // Abre o modal de fechamento da conta para usuários da mesa
+  };
+
+  const handleCloseAccount = () => {
+    setTotalToClose(totalPrice); // Armazena o total a ser exibido no modal
+    setShowCloseAccountConfirmationModal(true); // Abre o modal de confirmação de fechamento de conta
+  };
+
+  useEffect(() => {
+    const tablesCollectionRef = collection(db, "tables");
+    const q = query(tablesCollectionRef, where("number", "==", id));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const tableDoc = querySnapshot.docs[0];
+        const tableData = tableDoc.data();
+        setTableStatus(tableData.status); // Atualiza o status da mesa em tempo real
+      }
+    });
+
+    return () => unsubscribe(); // Limpa o listener ao desmontar o componente
+  }, [id]);
+
+  useEffect(() => {
+    if (tableStatus === "livre" && isTableUser) {
+      navigate(`/start/${id}`); // Redireciona para start/:id
+    }
+  }, [tableStatus, isTableUser, id, navigate]);
+
+  const confirmCloseAccount = async () => {
+    setLoading(true); // Começa o loading
+
+    try {
+      // Atualiza o status da mesa para "livre" e apaga todos os produtos
+      const tablesCollectionRef = collection(db, "tables");
+      const q = query(tablesCollectionRef, where("number", "==", id));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const tableDoc = querySnapshot.docs[0];
+        const tableDocRef = doc(db, "tables", tableDoc.id);
+        await updateDoc(tableDocRef, {
+          products: [], // Apaga todos os produtos
+          status: "livre", // Altera o status para "livre"
+        });
+      }
+
+      console.log("Conta fechada. Total: R$", formatPrice(totalToClose));
+      // Adicione sua lógica para finalizar o fechamento da conta aqui
+
+      // Fechar o modal de confirmação
+      setShowCloseAccountConfirmationModal(false);
+
+      // Redireciona para a rota /
+      navigate("/"); // Adiciona esta linha para redirecionar
+    } catch (error) {
+      console.error("Erro ao fechar a conta: ", error);
+    } finally {
+      setLoading(false); // Finaliza o loading
+    }
   };
 
   return (
@@ -190,9 +284,27 @@ const MyOrders = () => {
             <p className="font-bold text-xl">R$ {formatPrice(totalPrice)}</p>
           </div>
           <div className="flex justify-center mt-4 mb-2">
-            <button className="rounded-md bg-white text-black font-semibold text-sm py-2 px-5">
-              Fechar Conta
-            </button>
+            {isTableUser ? (
+              <button
+                onClick={handleRequestCloseAccount}
+                className={`rounded-md bg-white text-black font-semibold text-sm py-2 px-2 ${
+                  orders.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={orders.length === 0}
+              >
+                Solicitar Fechamento de Conta
+              </button>
+            ) : (
+              <button
+                onClick={handleCloseAccount}
+                className={`rounded-md bg-white text-black font-semibold text-sm py-2 px-2 ${
+                  orders.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={orders.length === 0}
+              >
+                Fechar Conta
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -228,6 +340,56 @@ const MyOrders = () => {
                     <FaSpinner className="animate-spin text-CC3333 h-7 w-7" />
                   </div>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Fechamento de Conta para Usuários da Mesa */}
+      {showCloseAccountModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white mx-10 pt-10 pb-7 px-4 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
+            <h3 className="text-2xl">Aguarde</h3>
+            <p className="font-normal text-xl my-4">
+              Em breve um funcionário estará com você.
+            </p>
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => setShowCloseAccountModal(false)}
+                className="bg-CC3333 text-white py-2 px-6 rounded"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Fechamento de Conta para Usuários não da Mesa */}
+      {showCloseAccountConfirmationModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white mx-10 py-8 rounded-lg shadow-lg w-510px text-center font-inter font-bold text-base">
+            <h3 className="text-2xl">Fechar Conta</h3>
+            <p className="font-normal text-lg my-4 flex justify-center items-center">
+              Total a pagar:{" "}
+              <span className="text-xl font-bold">
+                {" "}
+                R$ {formatPrice(totalToClose)}
+              </span>
+            </p>
+            <div className="mt-4 flex justify-center mx-10 space-x-5">
+              <button
+                onClick={confirmCloseAccount}
+                className="bg-CC3333 text-white rounded text-sm py-2 w-28"
+              >
+                Fechar Conta
+              </button>
+              <button
+                onClick={() => setShowCloseAccountConfirmationModal(false)}
+                className="bg-ADABAC text-white rounded text-sm py-2 w-28"
+              >
+                Cancelar
               </button>
             </div>
           </div>

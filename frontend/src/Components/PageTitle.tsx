@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 interface PageTitleProps {
   title: string;
 }
 
-const PageTitle: React.FC<PageTitleProps> = ({ title }) => {
+const PageTitle = ({ title }: PageTitleProps) => {
   useEffect(() => {
     document.title = title;
   }, [title]);

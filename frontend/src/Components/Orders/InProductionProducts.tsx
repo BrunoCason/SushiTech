@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   doc,
   getDoc,
   updateDoc,
@@ -22,17 +22,15 @@ const InProductionProducts = () => {
   const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
-    const fetchInProductionProducts = async () => {
-      try {
-        // Fetch all tables
-        const tablesCollectionRef = collection(db, "tables");
-        const tablesSnapshot = await getDocs(tablesCollectionRef);
+    const fetchInProductionProducts = () => {
+      const tablesCollectionRef = collection(db, "tables");
 
+      // Usamos onSnapshot para escutar mudanças em tempo real
+      const unsubscribe = onSnapshot(tablesCollectionRef, (snapshot) => {
         const inProductionProductsList: { table: Table; product: Product }[] =
           [];
 
-        // For each table, get products with status 'em producao'
-        for (const tableDoc of tablesSnapshot.docs) {
+        snapshot.docs.forEach((tableDoc) => {
           const tableData = tableDoc.data();
           const products = tableData.products || [];
           const table: Table = {
@@ -40,6 +38,7 @@ const InProductionProducts = () => {
             number: tableData.number,
             products,
             userId: tableData.userId || "",
+            status: "",
           };
 
           const productsWithStatusEmProducao = (products as Product[]).filter(
@@ -49,14 +48,14 @@ const InProductionProducts = () => {
           for (const product of productsWithStatusEmProducao) {
             inProductionProductsList.push({ table, product });
           }
-        }
+        });
 
         setInProductionProducts(inProductionProductsList);
-      } catch (error) {
-        console.error("Error fetching in production products: ", error);
-      } finally {
-        setLoading(false);
-      }
+        setLoading(false); // Desativa o loading após o carregamento dos dados
+      });
+
+      // Limpa o listener ao desmontar o componente
+      return () => unsubscribe();
     };
 
     fetchInProductionProducts();
@@ -69,7 +68,7 @@ const InProductionProducts = () => {
       const tableDoc = await getDoc(tableRef);
       const currentProducts = tableDoc.data()?.products || [];
 
-      // Update the status of the specific product using orderNumber
+      // Atualiza o status do produto específico para 'pronto'
       const updatedProducts = currentProducts.map((product: Product) =>
         product.orderNumber === orderNumber
           ? { ...product, status: "pronto" }
@@ -78,7 +77,7 @@ const InProductionProducts = () => {
 
       await updateDoc(tableRef, { products: updatedProducts });
 
-      // Update the local state to remove the product that was just marked as ready
+      // Remove o produto marcado como pronto do estado local
       setInProductionProducts((prevProducts) =>
         prevProducts.filter((item) => item.product.orderNumber !== orderNumber)
       );
@@ -89,7 +88,7 @@ const InProductionProducts = () => {
     } catch (error) {
       console.error("Error updating product status: ", error);
     } finally {
-      setIsStartingOrder(null); // Desativa o loading após a ação
+      setIsStartingOrder(null);
 
       setTimeout(() => {
         setShowModal(false);

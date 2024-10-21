@@ -1,6 +1,7 @@
 import { Product } from "./Product";
 
 export interface Table {
+  status: string;
   id: string;
   number: string;
   products: Product[];

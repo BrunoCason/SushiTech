@@ -16,16 +16,19 @@ const LoginConfig = () => {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
       const role = await getUserRole(uid);
 
       if (role) {
-        navigate("/", { state: { role } });
+        // Verifica se o usuário é um "usuário de mesa"
+        const isTableUser = email.startsWith("mesa");
+        if (isTableUser) {
+          const tableNumber = email.split("@")[0].replace("mesa", "");
+          navigate(`/start/${tableNumber}`); // Redireciona para /start/id
+        } else {
+          navigate("/", { state: { role } }); // Redireciona para a página inicial ou outra rota
+        }
       } else {
         setError("User role not found");
       }
@@ -41,7 +44,6 @@ const LoginConfig = () => {
       <main className="w-full max-w-md p-6 mx-5 bg-white rounded-lg shadow-xl space-y-4">
         <div className="flex justify-center">
           <img
-            className=""
             src="https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/logos%2FTech-escrito.png?alt=media&token=e17143b7-f599-41d9-9c85-ce3f8508645e"
             alt="logo"
           />

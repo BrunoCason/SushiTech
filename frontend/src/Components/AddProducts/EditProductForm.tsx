@@ -11,17 +11,18 @@ import { EditProductFormProps } from "../../Types";
 import { IoMdImage } from "react-icons/io";
 
 const tagsOptions = [
-  "Temaki",
-  "Frito",
   "Bebida",
-  "Sashimi",
-  "Nigiri",
-  "Sushi",
-  "Maki",
+  "Combos",
   "Donburi",
+  "Frito",
+  "Katsu",
+  "Maki",
+  "Nigiri",
+  "Sashimi",
+  "Sushi",
+  "Temaki",
   "Uramaki",
   "Yakimeshi",
-  "Katsu",
 ];
 
 const EditProductForm = ({

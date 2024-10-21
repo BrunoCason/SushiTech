@@ -29,60 +29,61 @@ const TablesAvailable = () => {
   const occupiedTableImage =
     "https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/static%2Ftable-white.png?alt=media&token=e0e89cfc-67ef-4223-9376-4a2c74752739";
 
-  const handleAddTable = async (tableNumber: string) => {
-    if (tableNumber) {
-      try {
-        // Verifica se a mesa já existe
-        const existingTables = await getDocs(collection(db, "tables"));
-        const tableExists = existingTables.docs.some(
-          (doc) => doc.data().number === tableNumber
-        );
-
-        if (tableExists) {
-          alert(`A mesa número ${tableNumber} já existe!`);
-          return; // Para a execução se a mesa já existir
-        }
-
-        // Faz uma requisição ao backend para criar o usuário da mesa
-        const response = await fetch(
-          "http://localhost:3000/api/users/create-table-user",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ tableNumber }),
+    const handleAddTable = async (tableNumber: string) => {
+      if (tableNumber) {
+        try {
+          // Verifica se a mesa já existe
+          const existingTables = await getDocs(collection(db, "tables"));
+          const tableExists = existingTables.docs.some(
+            (doc) => doc.data().number === tableNumber
+          );
+    
+          if (tableExists) {
+            alert(`A mesa número ${tableNumber} já existe!`);
+            return; // Para a execução se a mesa já existir
           }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erro ao criar o usuário da mesa");
+    
+          // Faz uma requisição ao backend para criar o usuário da mesa
+          const response = await fetch(
+            "http://localhost:3000/api/users/create-table-user",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ tableNumber }),
+            }
+          );
+    
+          if (!response.ok) {
+            throw new Error("Erro ao criar o usuário da mesa");
+          }
+    
+          const { userId } = await response.json(); // Obtém o userId retornado pelo backend
+    
+          // Adiciona a mesa ao Firestore com o userId e status "livre"
+          await addDoc(collection(db, "tables"), {
+            number: tableNumber,
+            products: [],
+            userId: userId,
+            status: "livre", // Adicionando o status "livre"
+          });
+    
+          // Atualiza a lista de mesas
+          fetchTables();
+    
+          // Exibe o modal de confirmação após adicionar a mesa
+          setConfirmationMessage(`Mesa ${tableNumber} criada com sucesso!`);
+          setShowConfirmation(true);
+    
+          setTimeout(() => {
+            setShowConfirmation(false);
+          }, 3000);
+        } catch (error) {
+          console.error(error);
         }
-
-        const { userId } = await response.json(); // Obtém o userId retornado pelo backend
-
-        // Adiciona a mesa ao Firestore com o userId retornado
-        await addDoc(collection(db, "tables"), {
-          number: tableNumber,
-          products: [],
-          userId: userId,
-        });
-
-        // Atualiza a lista de mesas
-        fetchTables();
-
-        // Exibe o modal de confirmação após adicionar a mesa
-        setConfirmationMessage(`Mesa ${tableNumber} criada com sucesso!`);
-        setShowConfirmation(true);
-
-        setTimeout(() => {
-          setShowConfirmation(false);
-        }, 3000);
-      } catch (error) {
-        console.error(error);
       }
-    }
-  };
+    };
 
   const fetchTables = async () => {
     const querySnapshot = await getDocs(collection(db, "tables"));
@@ -169,7 +170,7 @@ const TablesAvailable = () => {
                 <li
                   key={table.id}
                   className={`rounded-lg w-48 h-48 ${
-                    table.products && table.products.length > 0
+                    table.status === "ocupado" || table.status === "fechamento"
                       ? "bg-CC3333 text-white"
                       : "bg-DEDEDE "
                   }`}
@@ -182,12 +183,12 @@ const TablesAvailable = () => {
                         </span>
                         <img
                           src={
-                            table.products && table.products.length > 0
+                            table.status === "ocupado" || table.status === "fechamento"
                               ? occupiedTableImage
                               : freeTableImage
                           }
                           alt={`Mesa ${table.number} - ${
-                            table.products && table.products.length > 0
+                            table.status === "ocupado" || table.status === "fechamento"
                               ? "Ocupada"
                               : "Livre"
                           }`}
