@@ -170,7 +170,7 @@ const TablesAvailable = () => {
                 <li
                   key={table.id}
                   className={`rounded-lg w-48 h-48 ${
-                    table.status === "ocupado" || table.status === "fechamento"
+                    table.status === "ocupado" || table.status === "fechamento" || table.products.length > 0 
                       ? "bg-CC3333 text-white"
                       : "bg-DEDEDE "
                   }`}
@@ -183,12 +183,12 @@ const TablesAvailable = () => {
                         </span>
                         <img
                           src={
-                            table.status === "ocupado" || table.status === "fechamento"
+                            table.status === "ocupado" || table.status === "fechamento" || table.products.length > 0 
                               ? occupiedTableImage
                               : freeTableImage
                           }
                           alt={`Mesa ${table.number} - ${
-                            table.status === "ocupado" || table.status === "fechamento"
+                            table.status === "ocupado" || table.status === "fechamento" || table.products.length > 0 
                               ? "Ocupada"
                               : "Livre"
                           }`}

@@ -121,7 +121,7 @@ const ReadyOrders = () => {
                     </p>
                     <div>
                       <p className="font-medium text-E6E6E text-sm mb-2">
-                        R$ {item.product.quantity}
+                        Quantidade: {item.product.quantity}
                       </p>
                       <p className="font-medium text-E6E6E text-sm">
                         Pedido #{item.product.orderNumber}
