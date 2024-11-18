@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebaseAuth'; // Atualize o caminho conforme necessário
+import { auth } from '../firebaseAuth';
 import ProfileSettingsForm from '../Components/ProfileSettings/ProfileSettingsForm';
 
 const ProfileSettings = () => {

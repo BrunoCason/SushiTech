@@ -34,7 +34,7 @@ const LoginConfig = () => {
       }
     } catch (error) {
       console.error("Error when logging in with Email and Password:", error);
-      setError("Senha incorreta");
+      setError("E-mail e/ou senha incorretos");
     }
   };
 
@@ -55,7 +55,11 @@ const LoginConfig = () => {
             placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-CC3333"
+            className={`mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-CC3333 ${
+                error
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-CC3333"
+              }`}
           />
           <div className="relative mb-6">
             <input
@@ -65,7 +69,7 @@ const LoginConfig = () => {
               onChange={(e) => setPassword(e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                 error
-                  ? "border-red-500 focus:ring-red-500"
+                  ? "border-red-500 focus:ring-red-500 mb-2"
                   : "border-gray-300 focus:ring-CC3333"
               }`}
             />
@@ -88,7 +92,7 @@ const LoginConfig = () => {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-CC3333 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
+            className="px-4 py-2 mt-2 bg-CC3333 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
           >
             Login
           </button>
