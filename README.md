@@ -1,4 +1,6 @@
-# SushiTech 🍣💻  
+<p align="center">
+  <h1 align="center">SushiTech </h1>
+</p>
 
 Welcome to **SushiTech**, the online ordering system for restaurants aimed at modernizing and optimizing the management and service experience, with a focus on efficiency, error reduction, and customer satisfaction.
 
@@ -8,15 +10,11 @@ Welcome to **SushiTech**, the online ordering system for restaurants aimed at mo
   <img src="https://firebasestorage.googleapis.com/v0/b/tg-fatec-cfd4a.appspot.com/o/cliente.png?alt=media&token=932cb571-8f0a-4cc7-b0f8-996859ad8423" alt="Client" width="200px" />
 </p>
 
----
-
-## 📝 Overview  
+## Overview  
 
 **SushiTech** was developed with the goal of transforming the restaurant experience, modernizing service and optimizing operational processes. The system allows customers to place orders directly from their tables, manage their orders intuitively, and restaurants can track everything in real-time.
 
----
-
-## 🚀 Features  
+## Features  
 
 - **User Login and Registration**  
   - Secure login with redirection to the checkout page if necessary.  
@@ -33,9 +31,7 @@ Welcome to **SushiTech**, the online ordering system for restaurants aimed at mo
 - **Order Flow**  
   - Create, cancel, start, complete, deliver, and close the bill.  
 
----
-
-## 🎯 Objectives  
+## Objectives  
 
 1. **Improving the Customer Experience**  
    Provide a seamless and pleasant experience, with orders placed directly from the table and without complications.  
@@ -49,36 +45,23 @@ Welcome to **SushiTech**, the online ordering system for restaurants aimed at mo
 4. **Modernizing Service**  
    Use technology to provide faster and more convenient service.  
 
----
+## Tools Used
+[![React](https://img.shields.io/badge/React-black?style=for-the-badge&logo=react)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-black?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-black?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
+[![Node.js](https://img.shields.io/badge/Node.JS-black?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/en)
+[![Express.js](https://img.shields.io/badge/Express.js-black?style=for-the-badge&logo=express)](https://expressjs.com)
+[![Firebase](https://img.shields.io/badge/Firebase-black?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+[![Redux](https://img.shields.io/badge/Redux-black?style=for-the-badge&logo=redux)](https://redux.js.org)
 
-## 🛠️ Technologies Used  
-
-- **Front-end**  
-  - React.ts  
-  - Tailwind CSS  
-
-- **Back-end**  
-  - Node.js  
-  - Express.js  
-
-- **Database**  
-  - Firebase (authentication, storage, and database)
-
----
-
-## 💡 How to Set Up and Run the Project  
+## How to Set Up and Run the Project  
 
 1. **Clone the Repository**  
    ```bash
    git clone https://github.com/BrunoCason/SushiTech.git
-   cd sushitech
 
 2. **Install Dependencies**
    ```bash
-   cd frontend
-   npm install
-
-   cd backend
    npm install
 
 3. **Configure Firebase**
@@ -86,18 +69,13 @@ Welcome to **SushiTech**, the online ordering system for restaurants aimed at mo
    - In the Firebase console, configure the **Firestore**, **Authentication** and **Storage** services as needed.
    - Download the Firebase configuration file (`firebaseConfig`) and add the credentials to the `.env` file.
 
-4. **Access in Browser**
+4. **Run the application**
    ```bash
-   cd frontend
    npm run dev
 
-   cd backend
+5. **Start the server**
+   ```bash
    npm start
 
-5. **Acesse no Navegador**
-   - The project will be available at: http://localhost:5173/
-
----
-
-## 📞 Contact
+## Contact
 Developed by Bruno Cason. Reach out via email at brunocasons@gmail.com
